@@ -44,6 +44,7 @@ function HexMap(){
 	
 	S('#ID').attr('value',this.query.ID);
 	S('.value_title').html(htmlDecode(this.query.title) || this.query.ID);
+	S('title').html(htmlDecode(this.query.title) || this.query.ID);
 	S('#ward').attr('value',this.cols.ward);
 	S('#categories').attr('value',this.cols.categories);
 	S('#colour').attr('value',this.cols.colour);
