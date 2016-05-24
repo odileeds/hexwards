@@ -11,7 +11,7 @@ function HexMap(){
 
 	this.db = new Array();
 	this.data;
-	var wards = {"Adel and Wharfedale": "E05001411","Alwoodley": "E05001412","Ardsley and Robin Hood": "E05001413","Armley": "E05001414","Beeston and Holbeck": "E05001415","Bramley and Stanningley": "E05001416","Burmantofts and Richmond Hill": "E05001417","Calverley and Farsley": "E05001418","Chapel Allerton": "E05001419","City and Hunslet": "E05001420","Cross Gates and Whinmoor": "E05001421","Farnley and Wortley": "E05001422","Garforth and Swillington": "E05001423","Gipton and Harehills": "E05001424","Guiseley and Rawdon": "E05001425","Harewood": "E05001426","Headingley": "E05001427","Horsforth": "E05001428","Hyde Park and Woodhouse": "E05001429","Killingbeck and Seacroft": "E05001430","Kippax and Methley": "E05001431","Kirkstall": "E05001432","Middleton Park": "E05001433","Moortown": "E05001434","Morley North": "E05001435","Morley South": "E05001436","Otley and Yeadon": "E05001437","Pudsey": "E05001438","Rothwell": "E05001439","Roundhay": "E05001440","Temple Newsam": "E05001441","Weetwood": "E05001442","Wetherby": "E05001443" }
+	var wards = {"Adel and Wharfedale": "E05001411","Alwoodley": "E05001412","Ardsley and Robin Hood": "E05001413","Armley": "E05001414","Beeston and Holbeck": "E05001415","Bramley and Stanningley": "E05001416","Burmantofts and Richmond Hill": "E05001417","Calverley and Farsley": "E05001418","Chapel Allerton": "E05001419","City and Hunslet": "E05001420","Cross Gates and Whinmoor": "E05001421","Farnley and Wortley": "E05001422","Garforth and Swillington": "E05001423","Gipton and Harehills": "E05001424","Guiseley and Rawdon": "E05001425","Harewood": "E05001426","Headingley": "E05001427","Horsforth": "E05001428","Hyde Park and Woodhouse": "E05001429","Killingbeck and Seacroft": "E05001430","Kippax and Methley": "E05001431","Kirkstall": "E05001432","Middleton Park": "E05001433","Moortown": "E05001434","Morley North": "E05001435","Morley South": "E05001436","Otley and Yeadon": "E05001437","Pudsey": "E05001438","Rothwell": "E05001439","Roundhay": "E05001440","Temple Newsam": "E05001441","Weetwood": "E05001442","Wetherby": "E05001443", "Leeds": "Leeds" }
 
 	function parseQueryString(){
 		var r = {};
@@ -163,9 +163,11 @@ function HexMap(){
 			if(byward[id] > max && id != "Leeds") max = byward[id];
 		}
 		var css = "";
-		for(id in byward){
-			var colour = 'rgba('+this.colour.r+', '+this.colour.g+', '+this.colour.b+', ' + byward[id] / max + ")";
-			S('.'+id).find('.n').html(byward[id] + " incident"+(byward[id]==1 ? "":"s"))
+		for(i in wards){
+			id = wards[i];
+			v = (typeof byward[id]==="undefined" ? 0 : byward[id]);
+			var colour = 'rgba('+this.colour.r+', '+this.colour.g+', '+this.colour.b+', ' + v / max + ")";
+			S('.'+id).find('.n').html(v + " &times; "+this.cols.categories)
 			css += '.hexmap .hextile.'+id+' { background-color: '+colour+'; } .hexmap .hextile.'+id+':before, .hexmap .hextile.'+id+':after { border-color: '+colour+'; }';
 		}
 		S('#customstylesheet').html(css);
