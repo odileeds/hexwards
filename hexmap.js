@@ -34,11 +34,11 @@ function HexMap(){
 		return r;
 	}
 	// Escape HTML characters
-	function htmlDecode(input){ if(typeof input==="undefined") return; var d = document.createElement('div'); d.innerHTML = input; return d.innerHTML.replace(/\%20/g," ").replace(/\+/g," "); }
+	function htmlDecode(input){ if(typeof input==="undefined") return; var d = document.createElement('div'); d.innerHTML = decodeURIComponent(input); return d.innerHTML; }
 
 	this.query = parseQueryString();
 	
-	this.cols = { 'ward': this.query.ward, 'categories': htmlDecode(this.query.categories), 'col': htmlDecode(this.query.col) };
+	this.cols = { 'ward': this.query.ward, 'categories': htmlDecode(this.query.categories), 'col': htmlDecode(this.query.col), 'colour': htmlDecode(this.query.colour) };
 
 	var timestamp = new Date().getTime();
 	
@@ -46,6 +46,7 @@ function HexMap(){
 	S('.value_title').html(htmlDecode(this.query.title) || this.query.ID);
 	S('#ward').attr('value',this.cols.ward);
 	S('#categories').attr('value',this.cols.categories);
+	S('#colour').attr('value',this.cols.colour);
 	
 	function colExists(data,col){
 		for(var i = 0; i < data.result.fields.length; i++){
@@ -134,10 +135,8 @@ function HexMap(){
 	// Listen for changes to the dropdown select box
 	S('#category').on('change',{me:this},function(e){ e.data.me.update(); });
 
-	// Set default colour
-	this.colour = { 'r' : 246, 'g': 136, 'b': 31 };
 	// Use user-provided colour
-	if(this.query.colour && this.query.colour.indexOf('rgb(')==0){ this.colour = { 'r' : 246, 'g': 136, 'b': 31 }; }
+	this.colour = extractColour(htmlDecode(this.query.colour));
 
 	this.update = function() {
 
@@ -175,6 +174,18 @@ function HexMap(){
 
 	// Get the data
 	this.getData();
+	
+	function extractColour(c){
+		var col = { 'r' : 246, 'g': 136, 'b': 31 };
+		console.log(c)
+		if(c && c.indexOf('rgb(')==0){
+			var bits = c.match(/[0-9]+/g);
+			col.r = parseInt(bits[0]);
+			col.g = parseInt(bits[1]);
+			col.b = parseInt(bits[2]);
+		}
+		return col;
+	}
 	
 	S('#config').on('click',function(){
 		S('#setup').toggleClass('hide')
