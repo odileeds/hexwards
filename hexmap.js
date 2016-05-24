@@ -178,7 +178,6 @@ function HexMap(){
 	
 	function extractColour(c){
 		var col = { 'r' : 246, 'g': 136, 'b': 31 };
-		console.log(c)
 		if(c && c.indexOf('rgb(')==0){
 			var bits = c.match(/[0-9]+/g);
 			col.r = parseInt(bits[0]);
