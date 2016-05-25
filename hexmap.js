@@ -48,7 +48,7 @@ function HexMap(){
 	//var timestamp = new Date().getTime();
 	
 	S('#ID').attr('value',this.query.ID);
-	S('.value_title').html(htmlDecode(this.query.title) || this.query.ID);
+	S('.value_title').html((this.query.url ? '<a href="'+this.query.url+'">':'')+(htmlDecode(this.query.title) || this.query.ID)+(this.query.url ? '</a>':''));
 	S('title').html(htmlDecode(this.query.title) || this.query.ID);
 	S('#ward').attr('value',this.cols.ward);
 	S('#categories').attr('value',this.cols.categories);
