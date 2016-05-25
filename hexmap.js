@@ -34,7 +34,12 @@ function HexMap(){
 		return r;
 	}
 	// Escape HTML characters
-	function htmlDecode(input){ if(typeof input==="undefined") return; var d = document.createElement('div'); d.innerHTML = decodeURIComponent(input); return d.innerHTML; }
+	function htmlDecode(input){
+		if(typeof input==="undefined") return;
+		var d = document.createElement('div');
+		d.innerHTML = decodeURIComponent((input+'').replace(/\+/g, '%20'));
+		return d.innerHTML;
+	}
 
 	this.query = parseQueryString();
 	
