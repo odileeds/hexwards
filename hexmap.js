@@ -158,15 +158,22 @@ function HexMap(){
 	// Use user-provided colour
 	this.colour = extractColour(htmlDecode(this.query.colour));
 
+	function matchWard(w){
+		w = w.replace(/ Ward/,"").toUpperCase();
+		for(var name in wards){
+			if(name.toUpperCase() == w) return name;
+		}
+		return "";
+	}
+	
 	this.update = function() {
 
 		var typ = S('#category').e[0].value;
-		var ok,v;
+		var ok,v,i,id,w;
 
 		var byward = { 'Leeds': 0 };
 		for(i = 0; i < this.db.length; i++){
-			w = this.db[i][this.cols.ward].replace(/ Ward/,"");
-			w = (wards[w]) ? wards[w] : "";
+			w = matchWard(this.db[i][this.cols.ward]);
 			if(w && !byward[w]) byward[w] = 0;
 			ok = true;
 			// If we have a set of categories and this row doesn't match the one selected we don't proceed
@@ -184,7 +191,7 @@ function HexMap(){
 		var css = "";
 		for(i in wards){
 			id = wards[i];
-			v = (typeof byward[id]==="undefined" ? 0 : byward[id]);
+			v = (typeof byward[i]==="undefined" ? 0 : byward[i]);
 			var colour = 'rgba('+this.colour.r+', '+this.colour.g+', '+this.colour.b+', ' + v / max + ")";
 			S('.'+id).find('.n').html(v + '<span class="extra">&nbsp;&times; '+this.cols.categories+'</span>')
 			css += '.hexmap .hextile.'+id+' { background-color: '+colour+'; } .hexmap .hextile.'+id+':before, .hexmap .hextile.'+id+':after { border-color: '+colour+'; }';
