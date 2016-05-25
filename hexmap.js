@@ -64,7 +64,7 @@ function HexMap(){
 	this.getData = function(){
 
 		// First call will just return 100 records
-		S(document).ajax('http://api.datapress.io/api/3/action/datastore_search?resource_id='+this.query.ID+'',{
+		S(document).ajax('http://api.datapress.io/api/3/action/datastore_search?resource_id='+this.query.ID+'&limit=1',{
 			'complete': function(data){
 
 				data = JSON.parse(data);
