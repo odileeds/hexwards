@@ -45,7 +45,7 @@ function HexMap(){
 	
 	this.cols = { 'ward': this.query.ward, 'categories': htmlDecode(this.query.categories), 'col': htmlDecode(this.query.col), 'colour': htmlDecode(this.query.colour) };
 
-	var timestamp = new Date().getTime();
+	//var timestamp = new Date().getTime();
 	
 	S('#ID').attr('value',this.query.ID);
 	S('.value_title').html(htmlDecode(this.query.title) || this.query.ID);
@@ -63,76 +63,90 @@ function HexMap(){
 
 	this.getData = function(){
 
-		S(document).ajax('http://api.datapress.io/api/3/action/datastore_search?resource_id='+this.query.ID+'&'+timestamp,{
+		// First call will just return 100 records
+		S(document).ajax('http://api.datapress.io/api/3/action/datastore_search?resource_id='+this.query.ID+'',{
 			'complete': function(data){
 
 				data = JSON.parse(data);
-				this.data = data;
+				data.result.total
+				
+				// We ask for all the records (up to a maximum of 10000)
+				var n = Math.max(data.result.total,10000);
+				S(document).ajax('http://api.datapress.io/api/3/action/datastore_search?resource_id='+this.query.ID+'&limit='+n,{
+					'complete': function(data){
 
-				var line,i,j,n;
-				var categories = new Array();
+						data = JSON.parse(data);
+						this.data = data;
 
-				// If we've not defined the ward column by here, we try to auto identify it
-				if(typeof this.cols.ward==="undefined"){
-					for(i = 0; i < data.result.fields.length; i++){
-						if(data.result.fields[i].id.search(/(^|\b)ward/i) >= 0 && data.result.fields[i].type=="varchar") this.cols.ward = data.result.fields[i].id;
-					}
-				}
-				// If we've not defined the ward column by here, we try to auto identify it
-				if(typeof this.cols.categories){
-					this.cols.categorylist = false;
-					for(i = 0; i < data.result.fields.length; i++){
-						if(data.result.fields[i].id == this.cols.categories){
-							this.cols.categorylist = (data.result.fields[i].type=="varchar");
+						var line,i,j,n;
+						var categories = new Array();
+
+						// If we've not defined the ward column by here, we try to auto identify it
+						if(typeof this.cols.ward==="undefined"){
+							for(i = 0; i < data.result.fields.length; i++){
+								if(data.result.fields[i].id.search(/(^|\b)ward/i) >= 0 && data.result.fields[i].type=="varchar") this.cols.ward = data.result.fields[i].id;
+							}
 						}
-					}
-				}
-			
-				// Sanitise data
-				// 1) Do the columns exist?
-				var showconfig = false;
-				if(!colExists(data,this.cols.categories)){
-					S('#categories').addClass('error');
-					showconfig = true;
-					this.cols.categories = "";
-				}
-				if(!colExists(data,this.cols.ward)){
-					S('#ward').addClass('error');
-					showconfig = true;
-					this.cols.ward = "";
-				}
-				if(showconfig) S('#setup').removeClass('hide');
-				else S('#setup').addClass('hide');
-
-			
-				if(this.cols.categories && this.cols.ward){
-					for(i = 0; i < data.result.records.length; i++){
-						row = data.result.records[i];
-
-						// Inc No,Incident Type,Date,Time,District,Cause,Ward
-						// 1547005758,Accidential Primary Fires,01/04/2015,10:18:24,Leeds,Other cause,City and Hunslet Ward
-						if(row) this.db.push(row);
-						if(this.cols.categorylist){
-							j = row[this.cols.categories];
-							if(!categories[j]) categories[j] = 0;
-							categories[j]++;
+						// If we've not defined the ward column by here, we try to auto identify it
+						if(typeof this.cols.categories){
+							this.cols.categorylist = false;
+							for(i = 0; i < data.result.fields.length; i++){
+								if(data.result.fields[i].id == this.cols.categories){
+									this.cols.categorylist = (data.result.fields[i].type=="varchar");
+								}
+							}
 						}
-					}
 			
-					if(this.cols.categorylist){
-						html = "";
-						for(c in categories) html += '<option value="'+c+'">'+c+'</option>'
-						S('#category').html(html);
-						S('#customise').css({'display':''});
-					}else{
-						S('#customise').css({'display':'none'});
-					}
-					this.update();
-				}
+						// Sanitise data
+						// 1) Do the columns exist?
+						var showconfig = false;
+						if(!colExists(data,this.cols.categories)){
+							S('#categories').addClass('error');
+							showconfig = true;
+							this.cols.categories = "";
+						}
+						if(!colExists(data,this.cols.ward)){
+							S('#ward').addClass('error');
+							showconfig = true;
+							this.cols.ward = "";
+						}
+						if(showconfig) S('#setup').removeClass('hide');
+						else S('#setup').addClass('hide');
+
+			
+						if(this.cols.categories && this.cols.ward){
+							for(i = 0; i < data.result.records.length; i++){
+								row = data.result.records[i];
+
+								// Inc No,Incident Type,Date,Time,District,Cause,Ward
+								// 1547005758,Accidential Primary Fires,01/04/2015,10:18:24,Leeds,Other cause,City and Hunslet Ward
+								if(row) this.db.push(row);
+								if(this.cols.categorylist){
+									j = row[this.cols.categories];
+									if(!categories[j]) categories[j] = 0;
+									categories[j]++;
+								}
+							}
+			
+							if(this.cols.categorylist){
+								html = "";
+								for(c in categories) html += '<option value="'+c+'">'+c+'</option>'
+								S('#category').html(html);
+								S('#customise').css({'display':''});
+							}else{
+								S('#customise').css({'display':'none'});
+							}
+							this.update();
+						}
+					},
+					'error': function(e){ console.log(e); },
+					'this': this
+				});
 			},
 			'error': function(e){ console.log(e); },
 			'this': this
 		});
+
 	};
 
 	// Create ourselves an empty stylesheet that we can update later
