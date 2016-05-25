@@ -109,7 +109,10 @@
 	}
 	.hexmap .hex .n {
 		display: block;
-		font-size: 0.7em;
+		font-size: 0.5em;
+	}
+	.hexmap .hex .n .extra {
+		display: none;
 	}
 	.hexmap .hex .name {
 		font-size: 0.4em;
@@ -118,6 +121,9 @@
 	}
 	.hexmap .hextile:hover .hex .name, .hexmap .hextile.hover .hex .name, .hexmap .hextile .hex:focus .name {
 		text-align: left;
+	}
+	.hexmap .hextile:hover .hex .n .extra {
+		display: inline-block;
 	}
 	/* Deal with right-aligned hex content */
 	.hexmap .hextile:hover > .hex.hexright, .hexmap .hextile.hover > .hex.hexright, .hexmap .hextile > .hex.hexright:focus {
