@@ -180,8 +180,11 @@ function HexMap(){
 			if(this.cols.categorylist && this.db[i][this.cols.categories] != typ) ok = false;
 			if(ok){
 				v = (this.cols.categorylist) ? 1 : parseFloat(this.db[i][this.cols.categories]);
-				if(w) byward[w] += v;
-				byward['Leeds'] += v;
+				if(w){
+					// Only include the data if a ward is provided
+					byward[w] += v;
+					byward['Leeds'] += v;
+				}
 			}
 		}
 		var max = 0;
