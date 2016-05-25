@@ -196,7 +196,7 @@ function HexMap(){
 			id = wards[i];
 			v = (typeof byward[i]==="undefined" ? 0 : byward[i]);
 			var colour = 'rgba('+this.colour.r+', '+this.colour.g+', '+this.colour.b+', ' + v / max + ")";
-			S('.'+id).find('.n').html(v + '<span class="extra">&nbsp;&times; '+this.cols.categories+'</span>')
+			S('.'+id).find('.n').html(v + '<span class="extra">&nbsp;&times; '+typ+'</span>')
 			css += '.hexmap .hextile.'+id+' { background-color: '+colour+'; } .hexmap .hextile.'+id+':before, .hexmap .hextile.'+id+':after { border-color: '+colour+'; }';
 		}
 		S('#customstylesheet').html(css);
