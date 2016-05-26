@@ -179,7 +179,7 @@ function HexMap(){
 	
 	this.update = function() {
 
-		var typ = S('#category').e[0].value;
+		var typ = S('#category').e[0].value || this.cols.categories;
 		var ok,v,i,id,w;
 
 		var byward = { 'Leeds': 0 };
