@@ -85,7 +85,7 @@ function HexMap(){
 
 	this.setVals = function(){
 		this.query = parseQueryString();
-		this.cols = { 'ward': htmlDecode(this.query.ward), 'categories': htmlDecode(this.query.categories), 'col': htmlDecode(this.query.col), 'colour': htmlDecode(this.query.colour), 'count': (this.query.count=="true" ? true : false) };
+		this.cols = { 'ward': htmlDecode(this.query.ward), 'categories': htmlDecode(this.query.categories), 'col': htmlDecode(this.query.col), 'colour': htmlDecode(this.query.colour), 'count': (this.query.count=="true" ? true : false), 'categorylist': false };
 		// Use user-provided colour
 		this.colour = extractColour(htmlDecode(this.cols.colour));
 		return this;
@@ -289,11 +289,16 @@ function HexMap(){
 
 			if(this.cols.categorylist){
 				html = "";
-				for(c in categories) html += '<option value="'+c+'">'+c+'</option>'
+				for(c in categories){
+					html += '<option value="'+c+'">'+c+'</option>';
+					if(!this.categories) this.categories = new Array();
+					this.categories.push(c);
+				}
 				S('#category').html(html);
 				S('#customise').css({'display':''});
 			}else{
 				S('#customise').css({'display':'none'});
+				this.categories = new Array();
 			}
 			this.update();
 		}
@@ -314,7 +319,7 @@ function HexMap(){
 	S('body').append('<style id="customstylesheet"></style>');
 
 	// Listen for changes to the dropdown select box
-	S('#category').on('change',{me:this},function(e){ e.data.me.update(); });
+	S('#category').on('change',{me:this},function(e){ e.data.me.change(); });
 	S('#hexmapform').e[0].onsubmit = function(e){ _obj.change(); return false; }
 
 	function matchWard(w){
@@ -330,14 +335,14 @@ function HexMap(){
 		var typ = S('#category').e[0].value;
 		this.setVals();
 		var ok,v,i,id,w;
-
 		var byward = { 'Leeds': 0 };
+
 		for(i = 0; i < this.db.length; i++){
 			w = matchWard(this.db[i][this.cols.ward]);
 			if(w && !byward[w]) byward[w] = 0;
 			ok = true;
 			// If we have a set of categories and this row doesn't match the one selected we don't proceed
-			if(this.cols.categorylist && this.db[i][this.cols.categories] != typ) ok = false;
+			if(this.categories.length > 0 && this.db[i][this.cols.categories] != typ) ok = false;
 			if(ok){
 				v = (this.cols.count) ? 1 : parseFloat(this.db[i][this.cols.categories]);
 				if(isNaN(v)) v = 1;
