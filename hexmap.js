@@ -340,6 +340,7 @@ function HexMap(){
 			if(this.cols.categorylist && this.db[i][this.cols.categories] != typ) ok = false;
 			if(ok){
 				v = (this.cols.count) ? 1 : parseFloat(this.db[i][this.cols.categories]);
+				if(isNaN(v)) v = 1;
 				if(w){
 					// Only include the data if a ward is provided
 					byward[w] += v;
