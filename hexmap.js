@@ -11,7 +11,42 @@ function HexMap(){
 
 	this.db = new Array();
 	this.data;
-	var wards = {"Adel and Wharfedale": "E05001411","Alwoodley": "E05001412","Ardsley and Robin Hood": "E05001413","Armley": "E05001414","Beeston and Holbeck": "E05001415","Bramley and Stanningley": "E05001416","Burmantofts and Richmond Hill": "E05001417","Calverley and Farsley": "E05001418","Chapel Allerton": "E05001419","City and Hunslet": "E05001420","Cross Gates and Whinmoor": "E05001421","Farnley and Wortley": "E05001422","Garforth and Swillington": "E05001423","Gipton and Harehills": "E05001424","Guiseley and Rawdon": "E05001425","Harewood": "E05001426","Headingley": "E05001427","Horsforth": "E05001428","Hyde Park and Woodhouse": "E05001429","Killingbeck and Seacroft": "E05001430","Kippax and Methley": "E05001431","Kirkstall": "E05001432","Middleton Park": "E05001433","Moortown": "E05001434","Morley North": "E05001435","Morley South": "E05001436","Otley and Yeadon": "E05001437","Pudsey": "E05001438","Rothwell": "E05001439","Roundhay": "E05001440","Temple Newsam": "E05001441","Weetwood": "E05001442","Wetherby": "E05001443", "Leeds": "Leeds" }
+	var wards = {
+		"Adel and Wharfedale": {"code":"E05001411","alt":"AW"},
+		"Alwoodley": {"code":"E05001412","alt":"AL"},
+		"Ardsley and Robin Hood": {"code":"E05001413","alt":"AR"},
+		"Armley": {"code":"E05001414","alt":"AM"},
+		"Beeston and Holbeck": {"code":"E05001415","alt":"BH"},
+		"Bramley and Stanningley": {"code":"E05001416","alt":"BS"},
+		"Burmantofts and Richmond Hill": {"code":"E05001417","alt":"BR"},
+		"Calverley and Farsley": {"code":"E05001418","alt":"CF"},
+		"Chapel Allerton": {"code":"E05001419","alt":"CA"},
+		"City and Hunslet": {"code":"E05001420","alt":"CH"},
+		"Cross Gates and Whinmoor": {"code":"E05001421","alt":"CW"},
+		"Farnley and Wortley": {"code":"E05001422","alt":"FW"},
+		"Garforth and Swillington": {"code":"E05001423","alt":"GS"},
+		"Gipton and Harehills": {"code":"E05001424","alt":"GH"},
+		"Guiseley and Rawdon": {"code":"E05001425","alt":"GR"},
+		"Harewood": {"code":"E05001426","alt":"HA"},
+		"Headingley": {"code":"E05001427","alt":"HE"},
+		"Horsforth": {"code":"E05001428","alt":"HO"},
+		"Hyde Park and Woodhouse": {"code":"E05001429","alt":"HW"},
+		"Killingbeck and Seacroft": {"code":"E05001430","alt":"KS"},
+		"Kippax and Methley": {"code":"E05001431","alt":"KM"},
+		"Kirkstall": {"code":"E05001432","alt":"KI"},
+		"Middleton Park": {"code":"E05001433","alt":"MI"},
+		"Moortown": {"code":"E05001434","alt":"MO"},
+		"Morley North": {"code":"E05001435","alt":"MN"},
+		"Morley South": {"code":"E05001436","alt":"MS"},
+		"Otley and Yeadon": {"code":"E05001437","alt":"OY"},
+		"Pudsey": {"code":"E05001438","alt":"PU"},
+		"Rothwell": {"code":"E05001439","alt":"RL"},
+		"Roundhay": {"code":"E05001440","alt":"RO"},
+		"Temple Newsam": {"code":"E05001441","alt":"TN"},
+		"Weetwood": {"code":"E05001442","alt":"WE"},
+		"Wetherby": {"code":"E05001443","alt":"WY"},
+		"Leeds": {"code":"Leeds"},
+	}
 
 	function parseQueryString(){
 		var r = {};
@@ -43,7 +78,7 @@ function HexMap(){
 
 	this.query = parseQueryString();
 	
-	this.cols = { 'ward': this.query.ward, 'categories': htmlDecode(this.query.categories), 'col': htmlDecode(this.query.col), 'colour': htmlDecode(this.query.colour), 'count': (this.query.count=="true" ? true : false) };
+	this.cols = { 'ward': htmlDecode(this.query.ward), 'categories': htmlDecode(this.query.categories), 'col': htmlDecode(this.query.col), 'colour': htmlDecode(this.query.colour), 'count': (this.query.count=="true" ? true : false) };
 	if(this.cols.categorylist) this.cols.count = true;
 
 	S('#ID').attr('value',this.query.ID);
@@ -172,7 +207,7 @@ function HexMap(){
 	function matchWard(w){
 		w = w.replace(/ Ward/,"").replace(/ +$/,"").toUpperCase();
 		for(var name in wards){
-			if(name.toUpperCase() == w) return name;
+			if(name.toUpperCase() == w || wards[name].code == w || wards[name].alt == w) return name;
 		}
 		return "";
 	}
@@ -204,7 +239,7 @@ function HexMap(){
 		}
 		var css = "";
 		for(i in wards){
-			id = wards[i];
+			id = wards[i].code;
 			v = (typeof byward[i]==="undefined" ? 0 : byward[i]);
 			var colour = 'rgba('+this.colour.r+', '+this.colour.g+', '+this.colour.b+', ' + v / max + ")";
 			S('.'+id).find('.n').html(v + (typ ? '<span class="extra">&nbsp;&times; '+typ+'</span>':''))
