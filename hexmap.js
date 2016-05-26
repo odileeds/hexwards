@@ -43,17 +43,21 @@ function HexMap(){
 
 	this.query = parseQueryString();
 	
-	this.cols = { 'ward': this.query.ward, 'categories': htmlDecode(this.query.categories), 'col': htmlDecode(this.query.col), 'colour': htmlDecode(this.query.colour) };
+	this.cols = { 'ward': this.query.ward, 'categories': htmlDecode(this.query.categories), 'col': htmlDecode(this.query.col), 'colour': htmlDecode(this.query.colour), 'count': (this.query.count=="true" ? true : false) };
+	if(this.cols.categorylist) this.cols.count = true;
 
-	//var timestamp = new Date().getTime();
-	
 	S('#ID').attr('value',this.query.ID);
 	S('.value_title').html((this.query.url ? '<a href="'+htmlDecode(this.query.url)+'">':'')+(htmlDecode(this.query.title) || this.query.ID)+(this.query.url ? '</a>':''));
 	S('title').html(htmlDecode(this.query.title) || this.query.ID);
 	S('#ward').attr('value',this.cols.ward);
 	S('#categories').attr('value',this.cols.categories);
 	S('#colour').attr('value',this.cols.colour);
-	
+	// Update dropdown list
+	var c = S('#count option');
+	for(var i = 0; i < c.length; i++){
+		if(S(c.e[i]).attr('value') == this.cols.count+'') S(c.e[i]).attr('selected','selected');
+	}
+
 	function colExists(data,col){
 		for(var i = 0; i < data.result.fields.length; i++){
 			if(data.result.fields[i].id == col) return true;
@@ -138,6 +142,13 @@ function HexMap(){
 							}
 							this.update();
 						}
+
+						// If the dropdown select changes, update the plot
+						S('#count').on('change',{me:this},function(e){
+							e.data.me.cols.count = (this.e[0].value=="true" ? true: false);
+							e.data.me.update();
+						});
+
 					},
 					'error': function(e){ console.log(e); },
 					'this': this
@@ -159,7 +170,7 @@ function HexMap(){
 	this.colour = extractColour(htmlDecode(this.query.colour));
 
 	function matchWard(w){
-		w = w.replace(/ Ward/,"").toUpperCase();
+		w = w.replace(/ Ward/,"").replace(/ +$/,"").toUpperCase();
 		for(var name in wards){
 			if(name.toUpperCase() == w) return name;
 		}
@@ -179,7 +190,7 @@ function HexMap(){
 			// If we have a set of categories and this row doesn't match the one selected we don't proceed
 			if(this.cols.categorylist && this.db[i][this.cols.categories] != typ) ok = false;
 			if(ok){
-				v = (this.cols.categorylist) ? 1 : parseFloat(this.db[i][this.cols.categories]);
+				v = (this.cols.count) ? 1 : parseFloat(this.db[i][this.cols.categories]);
 				if(w){
 					// Only include the data if a ward is provided
 					byward[w] += v;
