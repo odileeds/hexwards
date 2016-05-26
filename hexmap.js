@@ -7,10 +7,12 @@ var eventcache={};function S(h){function f(m,e){var s=new Array();var q,r,p,n,l,
 * ODI Leeds Hex Map (version 1)
 */
 var map;
+
 function HexMap(){
 
-	this.db = new Array();
 	this.data;
+	this.responses = {};
+	this.db = new Array();
 	var wards = {
 		"Adel and Wharfedale": {"code":"E05001411","alt":"AW"},
 		"Alwoodley": {"code":"E05001412","alt":"AL"},
@@ -48,6 +50,11 @@ function HexMap(){
 		"Leeds": {"code":"Leeds"},
 	}
 
+	// Do we update the address bar?
+	this.pushstate = !!(window.history && history.pushState);
+	var _obj = this;
+	window[(this.pushstate) ? 'onpopstate' : 'onhashchange'] = function(e){ _obj.navigate(e); };
+
 	function parseQueryString(){
 		var r = {};
 		var q = location.search;
@@ -76,22 +83,44 @@ function HexMap(){
 		return d.innerHTML;
 	}
 
-	this.query = parseQueryString();
-	
-	this.cols = { 'ward': htmlDecode(this.query.ward), 'categories': htmlDecode(this.query.categories), 'col': htmlDecode(this.query.col), 'colour': htmlDecode(this.query.colour), 'count': (this.query.count=="true" ? true : false) };
-	if(this.cols.categorylist) this.cols.count = true;
-
-	S('#ID').attr('value',this.query.ID);
-	S('.value_title').html((this.query.url ? '<a href="'+htmlDecode(this.query.url)+'">':'')+(htmlDecode(this.query.title) || this.query.ID)+(this.query.url ? '</a>':''));
-	S('title').html(htmlDecode(this.query.title) || this.query.ID);
-	S('#ward').attr('value',this.cols.ward);
-	S('#categories').attr('value',this.cols.categories);
-	S('#colour').attr('value',this.cols.colour);
-	// Update dropdown list
-	var c = S('#count option');
-	for(var i = 0; i < c.length; i++){
-		if(S(c.e[i]).attr('value') == this.cols.count+'') S(c.e[i]).attr('selected','selected');
+	this.setVals = function(){
+		this.query = parseQueryString();
+		this.cols = { 'ward': htmlDecode(this.query.ward), 'categories': htmlDecode(this.query.categories), 'col': htmlDecode(this.query.col), 'colour': htmlDecode(this.query.colour), 'count': (this.query.count=="true" ? true : false) };
+		// Use user-provided colour
+		this.colour = extractColour(htmlDecode(this.cols.colour));
+		return this;
 	}
+
+	this.setTitle = function(){
+		S('.value_title').html((this.query.url ? '<a href="'+htmlDecode(this.query.url)+'">':'')+(htmlDecode(this.query.title) || this.query.ID)+(this.query.url ? '</a>':''));
+		S('title').html(htmlDecode(this.query.title) || this.query.ID);
+		return this;	
+	}
+	this.setInputs = function(){
+		console.log('setInputs')
+		S('#ID').attr('value',this.query.ID);
+		if(S('#ward').e[0].nodeName=="INPUT") S('#ward').attr('value',this.cols.ward);
+		if(S('#categories').e[0].nodeName=="INPUT") S('#categories').attr('value',this.cols.categories);
+		S('#colour').attr('value',this.cols.colour);
+		// Update dropdown list
+		var c = S('#count option');
+		for(var i = 0; i < c.length; i++){
+			if(S(c.e[i]).attr('value') == this.cols.count+'') S(c.e[i]).attr('selected','selected');
+		}
+		// Process the available fields and turn the <input> for category and ward columns into <select>
+		if(this.data && this.data.result) this.makeSelect('ward',this.data.result.fields,'id',this.cols.ward);
+		if(this.data && this.data.result) this.makeSelect('categories',this.data.result.fields,'id',this.cols.categories);
+
+		return this;
+	}
+	this.init = function(){
+		this.setVals();
+		this.setTitle();
+		this.setInputs();
+		return this;
+	}
+
+	this.init();
 
 	function colExists(data,col){
 		for(var i = 0; i < data.result.fields.length; i++){
@@ -100,111 +129,196 @@ function HexMap(){
 		return false;
 	}
 
-	this.getData = function(){
+	this.navigate = function(e){
+		console.log('navigate',location.href,e)
+		var id = this.query.ID;
+		this.init();
+		if(id != this.query.ID) this.getHeader();
+		else this.update();
+		return this;
+	}
+	
+	// Function that processes changes to form input/select fields
+	this.change = function(e){
+		this.updateParams();
+		var href = location.href.split("?")[0];
+		if(this.pushstate && !e){
+			href = href+'?'+this.buildQueryString();
+			history.pushState({},"Hexmap",href);
+			this.update();
+		}
+		return this;
+	}
+	this.makeSelect = function(id,fields,key,selected){
+		if(fields.length > 1){
+			var select = '<select id="'+id+'" name="'+id+'">';
+			for(var f = 0; f < fields.length; f++) select += '<option value="'+fields[f][key]+'"'+(selected && selected==fields[f][key] ? ' selected="selected"':'')+'>'+fields[f][key]+'</option>';
+			select += '</select>';
+			S('#'+id).replaceWith(select);
+			//S('#'+id).on('change',{me:this},function(e){ e.data.me.change(); });
+		}
+		return this;
+	}
+	// Build the query string
+	this.buildQueryString = function(){
+		var str = "";
+		var els = S('#hexmapform input[type=text]');
+		for(var i = 0; i < els.length; i++) str += (str ? '&':'')+S(els.e[i]).attr('id')+'='+els.e[i].value;
+		var els = S('#hexmapform select');
+		for(var i = 0; i < els.length; i++){
+			if(els.e[i].value) str += (str ? '&':'')+els.e[i].getAttribute('id')+'='+els.e[i].value;
+		}
+		return str;
+	}
+	// Read the parameters from the form
+	this.updateParams = function(){
 
-		// First call will just return 100 records
-		S(document).ajax('http://api.datapress.io/api/3/action/datastore_search?resource_id='+this.query.ID+'&limit=1',{
-			'complete': function(data){
+		v = S('#ward').e[0].value;
+		if(v) this.cols.ward = htmlDecode(v);
 
-				data = JSON.parse(data);
-				data.result.total
-				
-				// We ask for all the records (up to a maximum of 10000)
-				var n = Math.max(data.result.total,10000);
-				S(document).ajax('http://api.datapress.io/api/3/action/datastore_search?resource_id='+this.query.ID+'&limit='+n,{
-					'complete': function(data){
+		v = S('#categories').e[0].value;
+		if(v) this.cols.categories = htmlDecode(v);
 
-						data = JSON.parse(data);
-						this.data = data;
+		v = S('#colour').e[0].value;
+		if(v) this.cols.colour = htmlDecode(v);
 
-						var line,i,j,n;
-						var categories = new Array();
+		v = S('#count').e[0].value;
+		if(v) this.cols.count = (v=="true" ? true: false);
 
-						// If we've not defined the ward column by here, we try to auto identify it
-						if(typeof this.cols.ward==="undefined"){
-							for(i = 0; i < data.result.fields.length; i++){
-								if(data.result.fields[i].id.search(/(^|\b)ward/i) >= 0 && data.result.fields[i].type=="varchar") this.cols.ward = data.result.fields[i].id;
-							}
-						}
-						// If we've not defined the ward column by here, we try to auto identify it
-						if(typeof this.cols.categories){
-							this.cols.categorylist = false;
-							for(i = 0; i < data.result.fields.length; i++){
-								if(data.result.fields[i].id == this.cols.categories){
-									this.cols.categorylist = (data.result.fields[i].type=="varchar");
-								}
-							}
-						}
-			
-						// Sanitise data
-						// 1) Do the columns exist?
-						var showconfig = false;
-						if(!colExists(data,this.cols.categories)){
-							S('#categories').addClass('error');
-							showconfig = true;
-							this.cols.categories = "";
-						}
-						if(!colExists(data,this.cols.ward)){
-							S('#ward').addClass('error');
-							showconfig = true;
-							this.cols.ward = "";
-						}
-						if(showconfig) S('#setup').removeClass('hide');
-						else S('#setup').addClass('hide');
+		var v = S('#ID').e[0].value;
+		if(v && v != this.query.ID){
+			this.query.ID = v;
+			this.setTitle();
+			this.getHeader();
+		}
 
-			
-						if(this.cols.categories && this.cols.ward){
-							for(i = 0; i < data.result.records.length; i++){
-								row = data.result.records[i];
+		return this;
+	}
+	this.loadedHeader = function(data){
+		if(!this.responses[this.query.ID]) this.responses[this.query.ID] = {'header':{}};
+		this.responses[this.query.ID].header = data;
 
-								// Inc No,Incident Type,Date,Time,District,Cause,Ward
-								// 1547005758,Accidential Primary Fires,01/04/2015,10:18:24,Leeds,Other cause,City and Hunslet Ward
-								if(row) this.db.push(row);
-								if(this.cols.categorylist){
-									j = row[this.cols.categories];
-									if(!categories[j]) categories[j] = 0;
-									categories[j]++;
-								}
-							}
-			
-							if(this.cols.categorylist){
-								html = "";
-								for(c in categories) html += '<option value="'+c+'">'+c+'</option>'
-								S('#category').html(html);
-								S('#customise').css({'display':''});
-							}else{
-								S('#customise').css({'display':'none'});
-							}
-							this.update();
-						}
+		data = JSON.parse(data);
+		
+		// We ask for all the records (up to a maximum of 10000)
+		//this.setTitle();
+		this.init();
 
-						// If the dropdown select changes, update the plot
-						S('#count').on('change',{me:this},function(e){
-							e.data.me.cols.count = (this.e[0].value=="true" ? true: false);
-							e.data.me.update();
-						});
+		this.getRecords(Math.max(data.result.total,10000));
+		
+		return this;
+	}
 
-					},
-					'error': function(e){ console.log(e); },
-					'this': this
-				});
-			},
-			'error': function(e){ console.log(e); },
-			'this': this
-		});
+	// First call will just return 1 record so we can get the metadata
+	this.getHeader = function(){
+		console.log('getHeader',this.query.ID)
 
-	};
+		this.setTitle();
 
+		if(!this.responses[this.query.ID]){ 
+			S(document).ajax('http://api.datapress.io/api/3/action/datastore_search?resource_id='+this.query.ID+'&limit=1',{
+				'complete': this.loadedHeader,
+				'error': this.failLoad,
+				'this': this
+			});
+		}else this.loadedHeader(this.responses[this.query.ID].header);
+		return this;
+	}
+	this.failLoad = function(e){
+		console.log('fail to load',this.query.ID,e)
+		return this;
+	}
+	this.loadedRecords = function(data){
+		this.responses[this.query.ID].body = data;
+		data = JSON.parse(data);
+		this.data = data;
+		this.db = new Array();
+
+		var line,i,j,n;
+		var categories = new Array();
+
+		this.setInputs();
+
+		// If we've not defined the ward column by here, we try to auto identify it
+		if(typeof this.cols.ward==="undefined"){
+			for(i = 0; i < data.result.fields.length; i++){
+				if(data.result.fields[i].id.search(/(^|\b)ward/i) >= 0 && data.result.fields[i].type=="varchar") this.cols.ward = data.result.fields[i].id;
+			}
+		}
+		// If we've not defined the ward column by here, we try to auto identify it
+		if(typeof this.cols.categories){
+			this.cols.categorylist = false;
+			for(i = 0; i < data.result.fields.length; i++){
+				if(data.result.fields[i].id == this.cols.categories){
+					this.cols.categorylist = (data.result.fields[i].type=="varchar");
+				}
+			}
+		}
+		if(this.cols.categorylist) this.cols.count = true;
+
+		// Sanitise data
+		// 1) Do the columns exist?
+		var showconfig = false;
+		if(!colExists(data,this.cols.categories)){
+			S('#categories').addClass('error');
+			showconfig = true;
+			this.cols.categories = "";
+		}
+		if(!colExists(data,this.cols.ward)){
+			S('#ward').addClass('error');
+			showconfig = true;
+			this.cols.ward = "";
+		}
+		if(showconfig) S('#setup').removeClass('hide');
+		else S('#setup').addClass('hide');
+
+
+		if(this.cols.categories && this.cols.ward){
+			for(i = 0; i < data.result.records.length; i++){
+				row = data.result.records[i];
+
+				// Inc No,Incident Type,Date,Time,District,Cause,Ward
+				// 1547005758,Accidential Primary Fires,01/04/2015,10:18:24,Leeds,Other cause,City and Hunslet Ward
+				if(row) this.db.push(row);
+				if(this.cols.categorylist){
+					j = row[this.cols.categories];
+					if(!categories[j]) categories[j] = 0;
+					categories[j]++;
+				}
+			}
+
+			if(this.cols.categorylist){
+				html = "";
+				for(c in categories) html += '<option value="'+c+'">'+c+'</option>'
+				S('#category').html(html);
+				S('#customise').css({'display':''});
+			}else{
+				S('#customise').css({'display':'none'});
+			}
+			this.update();
+		}
+		return this;
+	}
+	this.getRecords = function(n){
+		console.log('getRecords',this.query.ID,this.responses[this.query.ID])
+		if(!this.responses[this.query.ID].body){
+			S(document).ajax('http://api.datapress.io/api/3/action/datastore_search?resource_id='+this.query.ID+'&limit='+n,{
+				'complete': this.loadedRecords,
+				'error': this.failLoad,
+				'this': this
+			});
+		}else this.loadedRecords(this.responses[this.query.ID].body);
+	}
+	
 	// Create ourselves an empty stylesheet that we can update later
 	S('body').append('<style id="customstylesheet"></style>');
 
 	// Listen for changes to the dropdown select box
 	S('#category').on('change',{me:this},function(e){ e.data.me.update(); });
-
-	// Use user-provided colour
-	this.colour = extractColour(htmlDecode(this.query.colour));
+	S('#hexmapform').e[0].onsubmit = function(e){ _obj.change(); return false; }
 
 	function matchWard(w){
+		if(!w || typeof w!=="string") return "";
 		w = w.replace(/ Ward/,"").replace(/ +$/,"").toUpperCase();
 		for(var name in wards){
 			if(name.toUpperCase() == w || wards[name].code == w || wards[name].alt == w) return name;
@@ -213,8 +327,8 @@ function HexMap(){
 	}
 	
 	this.update = function() {
-
 		var typ = S('#category').e[0].value;
+		this.setVals();
 		var ok,v,i,id,w;
 
 		var byward = { 'Leeds': 0 };
@@ -249,7 +363,7 @@ function HexMap(){
 	}
 
 	// Get the data
-	this.getData();
+	if(this.query.ID) this.getHeader();
 	
 	function extractColour(c){
 		var col = { 'r' : 246, 'g': 136, 'b': 31 };

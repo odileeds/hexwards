@@ -1,0 +1,184 @@
+.mapholder {
+	background: #f9f9f9;
+	padding: 0.5em;
+}
+.hexmap {
+	list-style: none;
+	margin: 0px;
+	padding: 0px;
+	font-size: 2em;
+}
+.hexmap .hextile {
+	margin-top: 0em;
+	margin-left: 0.7em;
+	margin-right: 0.7em;
+	margin-bottom: 0em;
+	width: 1.4em;
+	background-color: #efefef;
+	position: absolute;
+	float: left;
+	line-height: 2.2em;
+	height: 2.4em;
+	text-align: center;
+	font-family: monospace, sans-serif;
+	opacity: 1;
+	transition: all 1s linear;
+	box-sizing: border-box;
+}
+.hexmap .hextile:before {
+	content: " ";
+	width: 0; height: 0;
+	border-color: inherit;
+	border-left: 0px;
+	border-right: 0.7em solid #efefef;
+	border-top: 1.2em solid transparent!important;
+	border-bottom: 1.2em solid transparent!important;
+	position: absolute;
+	right: 1.4em;
+}
+.hexmap .hextile:after {
+	content: "";
+	width: 0; 
+	position: absolute;
+	left: 1.4em;
+	border-color: transparent;
+	border-right: 0px;
+	border-left: 0.7em solid #efefef;
+	border-top: 1.2em solid transparent!important;
+	border-bottom: 1.2em solid transparent!important;
+	top:0em;
+	z-index: 1;
+}
+.hexmap a.hex { color: inherit; text-decoration: none; }
+.hexmap .hextile,
+.hexmap .hextile:before,
+.hexmap .hextile:after {
+	transition: all 1s linear;
+}
+.hexmap .hextile > .hex {
+	overflow: hidden;
+	line-height: 1em;
+	margin: 0.2em 0.1em;
+	width: 1.2em;
+	height: 2em;
+	text-align: center;
+	box-sizing: border-box;
+	position: absolute;
+	left: 0px;
+}
+.hexmap .hextile:hover > .hex, .hexmap .hextile.hover > .hex, .hexmap .hextile > .hex:focus {
+	overflow: visible;
+	display: inline-block;
+	white-space: nowrap;
+	background: black;
+	width: auto;
+	margin: 0px;
+	padding: 0.2em 0.1em;
+	padding-right: 0.5em;
+	z-index: 100;
+	line-height: 2em;
+	height: 2.4em;
+	color: white;
+}
+
+.hexmap .hextile:hover > .hex:before, .hexmap .hextile.hover > .hex:before, .hexmap .hextile .hex:focus:before {
+	content: " ";
+	width: 0; height: 0;
+	border-color: inherit;
+	border-left: 0px;
+	border-right: 0.7em solid black;
+	border-top: 1.2em solid transparent!important;
+	border-bottom: 1.2em solid transparent!important;
+	position: absolute;
+	left: -0.7em;
+	top:0px;
+}
+.hexmap .hextile .hex .hexcontent {
+	text-align: center;
+}
+.hexmap .hextile:hover .hex .hexcontent, .hexmap .hextile.hover .hex .hexcontent, .hexmap .hextile .hex:focus .hexcontent {
+	line-height: 1em;
+	text-align: left;
+}
+.hexmap .hex .n {
+	display: block;
+	font-size: 0.4em;
+}
+.hexmap .hex .n .extra {
+	display: none;
+}
+.hexmap .hex .name {
+	font-size: 0.4em;
+	text-align: left;
+	white-space: nowrap;
+}
+.hexmap .hextile:hover .hex .name, .hexmap .hextile.hover .hex .name, .hexmap .hextile .hex:focus .name {
+	text-align: left;
+}
+.hexmap .hextile:hover .hex .n .extra {
+	display: inline-block;
+}
+/* Deal with right-aligned hex content */
+.hexmap .hextile:hover > .hex.hexright, .hexmap .hextile.hover > .hex.hexright, .hexmap .hextile > .hex.hexright:focus {
+	position: absolute;
+	left: auto;
+	right: 0px;
+}
+.hexmap .hextile:hover > .hex.hexright:before, .hexmap .hextile.hover > .hex.hexright:before, .hexmap .hextile > .hex.hexright:focus:before {
+	border: 0px;
+}
+.hexmap .hextile:hover > .hex.hexright:after, .hexmap .hextile.hover > .hex.hexright:after, .hexmap .hextile > .hex.hexright:focus:after {
+	content: " ";
+	width: 0; height: 0;
+	border-color: inherit;
+	border-right: 0px;
+	border-left: 0.7em solid black;
+	border-top: 1.2em solid transparent!important;
+	border-bottom: 1.2em solid transparent!important;
+	position: absolute;
+	right: -0.692em;
+	top:0px;
+}
+.hexmap .hextile:hover > .hex.hexright, .hexmap .hextile.hover > .hex.hexright, .hexmap .hextile > .hex.hexright:focus {
+	padding: 0.2em 0.1em;
+	padding-left: 0.5em;
+}
+
+ul.key {
+	list-style: none;
+}
+ul.key li {
+	display: inline-block;
+	width: auto;
+	position: relative;
+	padding: 0.2em;
+	margin-right: 0.2em;
+}
+.hexmap {
+	position: relative;
+	height: 18.75em;
+	width: 16.25em;
+	margin: auto;
+}
+li { position: absolute; }
+.r-1 { bottom: 0em; }
+.r-2 { bottom: 2.5em; }
+.r-3 { bottom: 5em; }
+.r-4 { bottom: 7.5em; }
+.r-5 { bottom: 10em; }
+.r-6 { bottom: 12.5em; }
+.r-7 { bottom: 15em; }
+.r-8 { bottom: 17.5em; }
+.r-9 { bottom: 20em; }
+.r-10 { bottom: 22.5em; }
+.r-11 { bottom: 25em; }
+.r-12 { bottom: 27.5em; }
+.r-13 { bottom: 30em; }
+.c-1 { left: 0em; }
+.c-2 { left: 2.25em; margin-bottom: 1.25em!important; }
+.c-3 { left: 4.5em; }
+.c-4 { left: 6.75em; margin-bottom: 1.25em!important; }
+.c-5 { left: 9em; }
+.c-6 { left: 11.25em; margin-bottom: 1.25em!important; }
+.c-7 { left: 13.5em; }
+.c-8 { left: 15.75em; margin-bottom: 1.25em!important; }
