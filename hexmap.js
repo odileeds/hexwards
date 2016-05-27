@@ -408,20 +408,9 @@ function HexMap(){
 					}
 				}
 			}
-// if (resultsArray[n] < 0) {
-  //              colorString = "#E8ADAA"
-    //        } else if (resultsArray[n] < 4) {
-      //          colorString = "#FFF380";
-        //    } else if (resultsArray[n] < 11) {
-          //      colorString = "#87F717";
-          //  } else if (resultsArray[n] < 50) {
-          //      colorString = "#4CC417";
-          //  } else {
-          //      colorString = "#348017";
-          //  }
 			var c2 = new Colour(colour);
 			S('.'+id).find('.n').html(v + (typ ? '<span class="extra">&nbsp;&times; '+typ+'</span>':''))
-			css += '.hexmap .hextile.'+id+' { background-color: '+colour+'; color: '+c2.text+'} .hexmap .hextile.'+id+':before, .hexmap .hextile.'+id+':after { border-color: '+colour+'; }';
+			css += '.hexmap .hextile.'+id+' { background-color: '+colour+'; '+(cs.length > 1 ? 'color: '+c2.text:'')+'} .hexmap .hextile.'+id+':before, .hexmap .hextile.'+id+':after { border-color: '+colour+'; }';
 		}
 		css += '.mapholder .hexmap { font-size: '+(Math.round(document.body.offsetWidth/40))+'px; }';
 		S('#customstylesheet').html(css);
