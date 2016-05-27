@@ -203,11 +203,11 @@ function HexMap(){
 
 		data = JSON.parse(data);
 		
-		// We ask for all the records (up to a maximum of 10000)
+		// We ask for all the records (up to a maximum of 100000)
 		//this.setTitle();
 		this.init();
 
-		var n = Math.min(data.result.total,10000)
+		var n = Math.min(data.result.total,100000)
 		S('#msg').html('Loading '+n+' records'+(n < data.result.total ? ' of '+data.result.total:'')+'&hellip;');
 
 		this.getRecords(n);
