@@ -240,7 +240,7 @@ function HexMap(){
 		this.data = data;
 
 		S('#msg').html('Loaded '+this.data.result.records.length+' records');
-		setTimeout(function(){ S('#msg').html(''); },2000);
+		setTimeout(function(){ S('#msg').html(''); },4000);
 
 		this.setInputs();
 		this.validateInputs();
