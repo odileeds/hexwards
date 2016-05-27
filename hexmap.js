@@ -88,7 +88,7 @@ function HexMap(){
 		this.query = parseQueryString();
 		this.cols = { 'ward': htmlDecode(this.query.ward), 'categories': htmlDecode(this.query.categories), 'col': htmlDecode(this.query.col), 'colour': htmlDecode(this.query.colour), 'count': (this.query.count=="true" ? true : false), 'categorylist': false };
 		// Use user-provided colour
-		this.colour = extractColour(htmlDecode(this.cols.colour));
+		this.colour = htmlDecode(this.cols.colour) || 'rgb(246,136,31)';
 		return this;
 	}
 
@@ -166,10 +166,10 @@ function HexMap(){
 	this.buildQueryString = function(){
 		var str = "";
 		var els = S('#hexmapform input[type=text]');
-		for(var i = 0; i < els.length; i++) str += (str ? '&':'')+S(els.e[i]).attr('id')+'='+els.e[i].value;
+		for(var i = 0; i < els.length; i++) str += (str ? '&':'')+S(els.e[i]).attr('id')+'='+els.e[i].value.replace(/#/g,'%23');
 		var els = S('#hexmapform select');
 		for(var i = 0; i < els.length; i++){
-			if(els.e[i].value) str += (str ? '&':'')+els.e[i].getAttribute('id')+'='+els.e[i].value;
+			if(els.e[i].value) str += (str ? '&':'')+els.e[i].getAttribute('id')+'='+els.e[i].value.replace(/#/g,'%23');
 		}
 		return str;
 	}
@@ -213,6 +213,10 @@ function HexMap(){
 		this.getRecords(n);
 		
 		return this;
+	}
+
+	this.loadedMetadata = function(data){
+	
 	}
 
 	// First call will just return 1 record so we can get the metadata
@@ -376,45 +380,59 @@ function HexMap(){
 				}
 			}
 		}
-		var max = 0;
+		var big = 1e50;
+		var max = -big;
+		var min = big;
 		for(id in byward){
 			if(byward[id] > max && id != "Leeds") max = byward[id];
+			if(byward[id] < min && id != "Leeds") min = byward[id];
 		}
+		if(min == big || max == -big) return this;
 		var css = "";
+		var cs = this.extractColours(this.colour,min,max);
+
 		for(i in wards){
 			id = wards[i].code;
 			v = (typeof byward[i]==="undefined" ? 0 : byward[i]);
-			var colour = 'rgba('+this.colour.r+', '+this.colour.g+', '+this.colour.b+', ' + v / max + ")";
+			if(cs.length == 1) var colour = 'rgba('+cs[0].c.rgb[0]+', '+cs[0].c.rgb[1]+', '+cs[0].c.rgb[2]+', ' + v / max + ")";
+			else{
+				var colour = "";
+				for(var c = 0; c < cs.length-1; c++){
+					if(v >= cs[c].v){
+						var pc = (v - cs[c].v)/(cs[c+1].v-cs[c].v);
+						var a = cs[c].c;
+						var b = cs[c+1].c;
+						if(v > max) pc = 1;	// Don't go above colour range
+						colour = 'rgb('+parseInt(a.rgb[0] + (b.rgb[0]-a.rgb[0])*pc)+','+parseInt(a.rgb[1] + (b.rgb[1]-a.rgb[1])*pc)+','+parseInt(a.rgb[2] + (b.rgb[2]-a.rgb[2])*pc)+')';
+						continue;
+					}
+				}
+			}
+// if (resultsArray[n] < 0) {
+  //              colorString = "#E8ADAA"
+    //        } else if (resultsArray[n] < 4) {
+      //          colorString = "#FFF380";
+        //    } else if (resultsArray[n] < 11) {
+          //      colorString = "#87F717";
+          //  } else if (resultsArray[n] < 50) {
+          //      colorString = "#4CC417";
+          //  } else {
+          //      colorString = "#348017";
+          //  }
+			var c2 = new Colour(colour);
 			S('.'+id).find('.n').html(v + (typ ? '<span class="extra">&nbsp;&times; '+typ+'</span>':''))
-			css += '.hexmap .hextile.'+id+' { background-color: '+colour+'; } .hexmap .hextile.'+id+':before, .hexmap .hextile.'+id+':after { border-color: '+colour+'; }';
+			css += '.hexmap .hextile.'+id+' { background-color: '+colour+'; color: '+c2.text+'} .hexmap .hextile.'+id+':before, .hexmap .hextile.'+id+':after { border-color: '+colour+'; }';
 		}
 		css += '.mapholder .hexmap { font-size: '+(Math.round(document.body.offsetWidth/40))+'px; }';
 		S('#customstylesheet').html(css);
 	}
 	this.resize = function(){
-		console.log('resize')
 		if(this.data) this.update();
-///		var i = S('.moreinfo');
-	//	if(i.length ==1){
-	//		var height = "innerHeight" in window ? window.innerHeight : document.documentElement.offsetHeight;
-	//		S('.moreinfo').css({'left':'0px','top':'0px','width':document.body.offsetWidth+'px','height':height+'px'});
-	//	}
 		return this;
 	}
 	
 	// Get the data
 	if(this.query.ID) this.getHeader();
-	
-	function extractColour(c){
-		var col = { 'r' : 246, 'g': 136, 'b': 31 };
-		if(c && c.indexOf('rgb(')==0){
-			var bits = c.match(/[0-9]+/g);
-			col.r = parseInt(bits[0]);
-			col.g = parseInt(bits[1]);
-			col.b = parseInt(bits[2]);
-		}
-		return col;
-	}
 	
 	S('#config').on('click',function(){
 		S('#setup').toggleClass('hide');
@@ -422,6 +440,100 @@ function HexMap(){
 		var h = this.html();
 		this.attr('data-alt',h).html(t);
 	});
+
+	// Send the colour stops as a string along with the minimum and maximum values
+	this.extractColours = function(c,mn,mx){
+		var stops = c.replace(/^\s+/g,"").replace(/\s+$/g,"").replace(/\s\s/g," ").split(', ');
+		var cs = new Array();
+		for(var i = 0; i < stops.length; i++){
+			var bits = stops[i].split(/ /);
+			if(bits.length==2) cs.push({'v':bits[1],'c':new Colour(bits[0])})
+			else if(bits.length==1) cs.push({'c':new Colour(bits[0])});
+		}
+		var r = mx-mn;
+		for(var c=0; c < cs.length;c++){
+			// If a colour-stop has a percentage value provided, 
+			if(cs[c].v && cs[c].v.indexOf('%')>0) cs[c].v = (mn + parseFloat(cs[c].v)*r/100);
+		}
+		if(!cs[0].v) cs[0].v = mn; // Set the minimum value
+		if(!cs[cs.length-1].v) cs[cs.length-1].v = mx; // Set the maximum value
+		var skip = 0;
+		// If a colour-stop doesn't have a specified position and it isn't the first
+		// or last stop, then it is assigned the position that is half way between
+		// the previous stop and next stop
+		for(var c=1; c < cs.length;c++){
+			// If we haven't got a value we increment our counter and move on
+			if(!cs[c].v) skip++;
+			// If we have a value and the counter shows we've skipped some
+			// we now back-track and set them.
+			if(cs[c].v && skip > 0){
+				for(var d = 1; d <= skip ; d++){
+					a = cs[c-skip-1].v;
+					b = cs[c].v;
+					cs[c-d].v = a + (b-a)*(skip-d+1)/(skip+1);
+				}
+				todo = 0;
+			}
+		}
+		return cs;
+	}
+	
+	// Define colour routines
+	function Colour(c,n){
+		if(!c) return {};
+
+		function d2h(d) { return ((d < 16) ? "0" : "")+d.toString(16);}
+		function h2d(h) {return parseInt(h,16);}
+		/**
+		 * Converts an RGB color value to HSV. Conversion formula
+		 * adapted from http://en.wikipedia.org/wiki/HSV_color_space.
+		 * Assumes r, g, and b are contained in the set [0, 255] and
+		 * returns h, s, and v in the set [0, 1].
+		 *
+		 * @param   Number  r       The red color value
+		 * @param   Number  g       The green color value
+		 * @param   Number  b       The blue color value
+		 * @return  Array           The HSV representation
+		 */
+		function rgb2hsv(r, g, b){
+			r = r/255, g = g/255, b = b/255;
+			var max = Math.max(r, g, b), min = Math.min(r, g, b);
+			var h, s, v = max;
+			var d = max - min;
+			s = max == 0 ? 0 : d / max;
+			if(max == min) h = 0; // achromatic
+			else{
+				switch(max){
+					case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+					case g: h = (b - r) / d + 2; break;
+					case b: h = (r - g) / d + 4; break;
+				}
+				h /= 6;
+			}
+			return [h, s, v];
+		}
+
+		this.alpha = 1;
+
+		// Let's deal with a variety of input
+		if(c.indexOf('#')==0){
+			this.hex = c;
+			this.rgb = [h2d(c.substring(1,3)),h2d(c.substring(3,5)),h2d(c.substring(5,7))];
+		}else if(c.indexOf('rgb')==0){
+			var bits = c.match(/[0-9\.]+/g);
+			if(bits.length == 4) this.alpha = parseFloat(bits[3]);
+			this.rgb = [parseInt(bits[0]),parseInt(bits[1]),parseInt(bits[2])];
+			this.hex = "#"+d2h(this.rgb[0])+d2h(this.rgb[1])+d2h(this.rgb[2]);
+		}else return {};
+		this.hsv = rgb2hsv(this.rgb[0],this.rgb[1],this.rgb[2]);
+		this.name = (n || "Name");
+		var r,sat;
+		for(r = 0, sat = 0; r < this.rgb.length ; r++){
+			if(this.rgb[r] > 200) sat++;
+		}
+		this.text = (this.rgb[0] + this.rgb[1] + this.rgb[2] > 500 || sat > 1) ? "black" : "white";
+		return this;
+	}
 
 	return this;
 }
