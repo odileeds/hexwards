@@ -80,7 +80,7 @@ function HexMap(){
 	function htmlDecode(input){
 		if(typeof input==="undefined") return;
 		var d = document.createElement('div');
-		d.innerHTML = decodeURIComponent((input+'').replace(/\+/g, '%20'));
+		d.innerHTML = decodeURIComponent((input+'').replace(/\+/g, '%20').replace(/%,/g,"PERCENTCOMMA")).replace(/PERCENTCOMMA/g,"%,");
 		return d.innerHTML;
 	}
 
@@ -166,10 +166,10 @@ function HexMap(){
 	this.buildQueryString = function(){
 		var str = "";
 		var els = S('#hexmapform input[type=text]');
-		for(var i = 0; i < els.length; i++) str += (str ? '&':'')+S(els.e[i]).attr('id')+'='+els.e[i].value.replace(/#/g,'%23');
+		for(var i = 0; i < els.length; i++) str += (str ? '&':'')+S(els.e[i]).attr('id')+'='+els.e[i].value.replace(/#/g,'%23').replace(/\%/g,'%25');
 		var els = S('#hexmapform select');
 		for(var i = 0; i < els.length; i++){
-			if(els.e[i].value) str += (str ? '&':'')+els.e[i].getAttribute('id')+'='+els.e[i].value.replace(/#/g,'%23');
+			if(els.e[i].value) str += (str ? '&':'')+els.e[i].getAttribute('id')+'='+els.e[i].value.replace(/#/g,'%23').replace(/\%/g,'%25');
 		}
 		return str;
 	}
