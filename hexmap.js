@@ -97,7 +97,7 @@ function HexMap(){
 		return this;	
 	}
 	this.setInputs = function(){
-		console.log('setInputs')
+		//console.log('setInputs')
 		S('#ID').attr('value',this.query.ID);
 		if(S('#ward').e[0].nodeName=="INPUT") S('#ward').attr('value',this.cols.ward);
 		if(S('#categories').e[0].nodeName=="INPUT") S('#categories').attr('value',this.cols.categories);
@@ -130,7 +130,7 @@ function HexMap(){
 	}
 
 	this.navigate = function(e){
-		console.log('navigate',location.href,e)
+		//console.log('navigate',location.href,e)
 		var id = this.query.ID;
 		this.init();
 		if(id != this.query.ID) this.getHeader();
@@ -145,6 +145,8 @@ function HexMap(){
 		if(this.pushstate && !e){
 			href = href+'?'+this.buildQueryString();
 			history.pushState({},"Hexmap",href);
+			this.validateInputs();
+			this.updateCategories();
 			this.update();
 		}
 		return this;
@@ -211,10 +213,9 @@ function HexMap(){
 
 	// First call will just return 1 record so we can get the metadata
 	this.getHeader = function(){
-		console.log('getHeader',this.query.ID)
+		//console.log('getHeader',this.query.ID)
 
 		this.setTitle();
-
 		if(!this.responses[this.query.ID]){ 
 			S(document).ajax('http://api.datapress.io/api/3/action/datastore_search?resource_id='+this.query.ID+'&limit=1',{
 				'complete': this.loadedHeader,
@@ -232,12 +233,20 @@ function HexMap(){
 		this.responses[this.query.ID].body = data;
 		data = JSON.parse(data);
 		this.data = data;
-		this.db = new Array();
-
-		var line,i,j,n;
-		var categories = new Array();
 
 		this.setInputs();
+		this.validateInputs();
+		this.updateCategories();
+		if(this.cols.categories && this.cols.ward){
+			this.update();
+		}
+
+		return this;
+	}
+	this.validateInputs = function(){
+
+		var line,i,j,n;
+		var data = this.data;
 
 		// If we've not defined the ward column by here, we try to auto identify it
 		if(typeof this.cols.ward==="undefined"){
@@ -245,7 +254,7 @@ function HexMap(){
 				if(data.result.fields[i].id.search(/(^|\b)ward/i) >= 0 && data.result.fields[i].type=="varchar") this.cols.ward = data.result.fields[i].id;
 			}
 		}
-		// If we've not defined the ward column by here, we try to auto identify it
+		// Check if the column type for the categories is char
 		if(typeof this.cols.categories){
 			this.cols.categorylist = false;
 			for(i = 0; i < data.result.fields.length; i++){
@@ -272,7 +281,14 @@ function HexMap(){
 		if(showconfig) S('#setup').removeClass('hide');
 		else S('#setup').addClass('hide');
 
-
+		return this;
+	}
+	this.updateCategories = function(){
+		var data = this.data;
+		var i,html,row;
+		this.db = new Array();
+		var categories = new Array();
+		var typ = S('#category').e[0].value;
 		if(this.cols.categories && this.cols.ward){
 			for(i = 0; i < data.result.records.length; i++){
 				row = data.result.records[i];
@@ -290,7 +306,7 @@ function HexMap(){
 			if(this.cols.categorylist){
 				html = "";
 				for(c in categories){
-					html += '<option value="'+c+'">'+c+'</option>';
+					html += '<option value="'+c+'"'+(typ && typ==c ? ' selected="selected"':'')+'>'+c+'</option>';
 					if(!this.categories) this.categories = new Array();
 					this.categories.push(c);
 				}
@@ -300,12 +316,11 @@ function HexMap(){
 				S('#customise').css({'display':'none'});
 				this.categories = new Array();
 			}
-			this.update();
 		}
 		return this;
 	}
 	this.getRecords = function(n){
-		console.log('getRecords',this.query.ID,this.responses[this.query.ID])
+		//console.log('getRecords',this.query.ID,this.responses[this.query.ID])
 		if(!this.responses[this.query.ID].body){
 			S(document).ajax('http://api.datapress.io/api/3/action/datastore_search?resource_id='+this.query.ID+'&limit='+n,{
 				'complete': this.loadedRecords,
@@ -383,7 +398,10 @@ function HexMap(){
 	}
 	
 	S('#config').on('click',function(){
-		S('#setup').toggleClass('hide')
+		S('#setup').toggleClass('hide');
+		var t = this.attr('data-alt');
+		var h = this.html();
+		this.attr('data-alt',h).html(t);
 	});
 
 	return this;
