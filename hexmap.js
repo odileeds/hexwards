@@ -207,7 +207,10 @@ function HexMap(){
 		//this.setTitle();
 		this.init();
 
-		this.getRecords(Math.max(data.result.total,10000));
+		var n = Math.min(data.result.total,10000)
+		S('#msg').html('Loading '+n+' records'+(n < data.result.total ? ' of '+data.result.total:'')+'&hellip;');
+
+		this.getRecords(n);
 		
 		return this;
 	}
@@ -217,7 +220,8 @@ function HexMap(){
 		//console.log('getHeader',this.query.ID)
 
 		this.setTitle();
-		if(!this.responses[this.query.ID]){ 
+		if(!this.responses[this.query.ID]){
+			S('#msg').html('Getting data set header');
 			S(document).ajax('http://api.datapress.io/api/3/action/datastore_search?resource_id='+this.query.ID+'&limit=1',{
 				'complete': this.loadedHeader,
 				'error': this.failLoad,
@@ -234,6 +238,9 @@ function HexMap(){
 		this.responses[this.query.ID].body = data;
 		data = JSON.parse(data);
 		this.data = data;
+
+		S('#msg').html('Loaded '+this.data.result.records.length+' records');
+		setTimeout(function(){ S('#msg').html(''); },2000);
 
 		this.setInputs();
 		this.validateInputs();
