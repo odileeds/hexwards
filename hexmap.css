@@ -22,7 +22,7 @@
 	text-align: center;
 	font-family: monospace, sans-serif;
 	opacity: 1;
-	transition: all 1s linear;
+	transition: background-color 1s linear;
 	box-sizing: border-box;
 }
 .hexmap .hextile:before {
@@ -53,7 +53,7 @@
 .hexmap .hextile,
 .hexmap .hextile:before,
 .hexmap .hextile:after {
-	transition: all 1s linear;
+	transition: background-color 1s linear, border-color 1s linear;
 }
 .hexmap .hextile > .hex {
 	overflow: hidden;

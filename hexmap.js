@@ -53,6 +53,7 @@ function HexMap(){
 	// Do we update the address bar?
 	this.pushstate = !!(window.history && history.pushState);
 	var _obj = this;
+	window.addEventListener('resize',function(e){ _obj.resize(); });
 	window[(this.pushstate) ? 'onpopstate' : 'onhashchange'] = function(e){ _obj.navigate(e); };
 
 	function parseQueryString(){
@@ -380,9 +381,20 @@ function HexMap(){
 			S('.'+id).find('.n').html(v + (typ ? '<span class="extra">&nbsp;&times; '+typ+'</span>':''))
 			css += '.hexmap .hextile.'+id+' { background-color: '+colour+'; } .hexmap .hextile.'+id+':before, .hexmap .hextile.'+id+':after { border-color: '+colour+'; }';
 		}
+		css += '.mapholder .hexmap { font-size: '+(Math.round(document.body.offsetWidth/40))+'px; }';
 		S('#customstylesheet').html(css);
 	}
-
+	this.resize = function(){
+		console.log('resize')
+		if(this.data) this.update();
+///		var i = S('.moreinfo');
+	//	if(i.length ==1){
+	//		var height = "innerHeight" in window ? window.innerHeight : document.documentElement.offsetHeight;
+	//		S('.moreinfo').css({'left':'0px','top':'0px','width':document.body.offsetWidth+'px','height':height+'px'});
+	//	}
+		return this;
+	}
+	
 	// Get the data
 	if(this.query.ID) this.getHeader();
 	
