@@ -182,3 +182,27 @@ li { position: absolute; }
 .c-6 { left: 11.25em; margin-bottom: 1.25em!important; }
 .c-7 { left: 13.5em; }
 .c-8 { left: 15.75em; margin-bottom: 1.25em!important; }
+
+
+#data {
+	width: 100%;
+	overflow-x: auto;
+	margin-top: 1em;
+	text-align: left;
+}
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+table tr:nth-child(2n) {
+	background-color: #efefef;
+}
+table th {
+	background-color: #333333;
+	color: #efefef;
+}
+table td, table th {
+	border: 1px solid black;
+	white-space: nowrap;
+	padding: 0.5em;
+}

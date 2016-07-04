@@ -253,6 +253,33 @@ function HexMap(){
 			this.update();
 		}
 
+		// Create the data table
+		var table = "<h2>Data table</h2><table>";
+		table += '<tr>';
+		for(var c = 0; c < this.data.result.fields.length; c++){
+			table += '<th>'+this.data.result.fields[c].id+'</th>';
+		}
+		table += '</tr>';
+		for(var i = 0; i < this.data.result.records.length; i++){
+			table += '<tr>';
+			for(var c = 0; c < this.data.result.fields.length; c++){
+				table += '<td>'+this.data.result.records[i][this.data.result.fields[c].id]+'</td>';
+			}
+			table += '</tr>';
+		}
+		table += '</table>';
+		S('#data').html(table);
+
+		for(i in wards){
+			S('.hexmap li.'+wards[i].code).on('click',{me:this,ward:wards[i]},function(e){
+				var rows = S('#data table tr');
+				var ward = matchWard(e.data.ward.code);
+				for(var i = 0; i < e.data.me.wardrows.length; i++){
+					S(rows.e[i+1]).attr('class',(e.data.me.wardrows[i] == ward ? 'show' : 'hide'));
+				}
+			});
+		}
+
 		return this;
 	}
 	this.validateInputs = function(){
@@ -363,11 +390,13 @@ function HexMap(){
 		this.setVals();
 		var ok,v,i,id,w;
 		var byward = { 'Leeds': 0 };
+		this.wardrows = new Array(this.db.length);
 
 		for(i = 0; i < this.db.length; i++){
 			w = matchWard(this.db[i][this.cols.ward]);
 			if(w && !byward[w]) byward[w] = 0;
 			ok = true;
+			if(w) this.wardrows[i] = w;
 			// If we have a set of categories and this row doesn't match the one selected we don't proceed
 			if(this.categories.length > 0 && this.db[i][this.cols.categories] != typ) ok = false;
 			if(ok){
@@ -411,6 +440,7 @@ function HexMap(){
 			var c2 = new Colour(colour);
 			S('.'+id).find('.n').html(v + (typ ? '<span class="extra">&nbsp;&times; '+typ+'</span>':''))
 			css += '.hexmap .hextile.'+id+' { background-color: '+colour+'; '+(cs.length > 1 ? 'color: '+c2.text:'')+'} .hexmap .hextile.'+id+':before, .hexmap .hextile.'+id+':after { border-color: '+colour+'; }';
+
 		}
 		css += '.mapholder .hexmap { font-size: '+(Math.round(document.body.offsetWidth/40))+'px; }';
 		S('#customstylesheet').html(css);
