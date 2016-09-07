@@ -49,6 +49,16 @@ function HexMap(){
 		"Wetherby": {"code":"E05001443","alt":"WY"},
 		"Leeds": {"code":"Leeds"},
 	}
+	this.scales = {
+		'ODI': 'rgb(114,46,165) 0%, rgb(230,0,124) 50%, rgb(249,188,38) 100%',
+		'Heat': 'rgb(0,0,0) 0%, rgb(128,0,0) 25%, rgb(255,128,0) 50%, rgb(255,255,128) 75%, rgb(255,255,255) 100%',
+		'Planck': 'rgb(0,0,255) 0, rgb(0,112,255) 16.666%, rgb(0,221,255) 33.3333%, rgb(255,237,217) 50%, rgb(255,180,0) 66.666%, rgb(255,75,0) 100%',
+		'Viridis8': 'rgb(122,76,139) 0, rgb(124,109,168) 12.5%, rgb(115,138,177) 25%, rgb(107,164,178) 37.5%, rgb(104,188,170) 50%, rgb(133,211,146) 62.5%, rgb(189,229,97) 75%, rgb(254,240,65) 87.5%',
+		'Plasma': 'rgb(12,7,134) 0, rgb(82,1,163) 12.5%, rgb(137,8,165) 25%, rgb(184,50,137) 37.5%, rgb(218,90,104) 50%, rgb(243,135,72) 62.5%, rgb(253,187,43) 75%, rgb(239,248,33) 87.5%',
+		'Population': 'rgb(232,173,170) -1000, rgb(232, 173, 170) 0, rgb(255,​243,128) 0, rgb(135,247,23) 4, rgb(76,196,23) 11, rgb(52,128,23) 50',
+		'Referendum': '#4BACC6 0, #B6DDE8 50%, #FFF380 50%, #FFFF00 100%',
+	}
+
 
 	// Do we update the address bar?
 	this.pushstate = !!(window.history && history.pushState);
@@ -86,9 +96,16 @@ function HexMap(){
 
 	this.setVals = function(){
 		this.query = parseQueryString();
-		this.cols = { 'ward': htmlDecode(this.query.ward), 'categories': htmlDecode(this.query.categories), 'col': htmlDecode(this.query.col), 'colour': htmlDecode(this.query.colour), 'count': (this.query.count=="true" ? true : false), 'categorylist': false };
+		this.cols = { 'ward': htmlDecode(this.query.ward), 'categories': htmlDecode(this.query.categories), 'col': htmlDecode(this.query.col), 'colour': htmlDecode(this.query.colour), 'palette': htmlDecode(this.query.palette), 'count': (this.query.count=="true" ? true : false), 'categorylist': false };
 		// Use user-provided colour
 		this.colour = htmlDecode(this.cols.colour) || 'rgb(246,136,31)';
+
+		for(var c in this.scales){
+			if(c == this.cols.palette){
+				this.colour = this.scales[c];
+				continue;
+			}
+		}
 		return this;
 	}
 
@@ -103,6 +120,11 @@ function HexMap(){
 		if(S('#ward').e[0].nodeName=="INPUT") S('#ward').attr('value',this.cols.ward);
 		if(S('#categories').e[0].nodeName=="INPUT") S('#categories').attr('value',this.cols.categories);
 		S('#colour').attr('value',this.cols.colour);
+		// Update palette list
+		var c = S('#palette option');
+		for(var i = 0; i < c.length; i++){
+			if(S(c.e[i]).attr('value') == this.cols.palette+'') S(c.e[i]).attr('selected','selected');
+		}
 		// Update dropdown list
 		var c = S('#count option');
 		for(var i = 0; i < c.length; i++){
@@ -187,6 +209,9 @@ function HexMap(){
 
 		v = S('#count').e[0].value;
 		if(v) this.cols.count = (v=="true" ? true: false);
+
+		v = S('#palette').e[0].value;
+		if(v) this.cols.palette = htmlDecode(v);
 
 		var v = S('#ID').e[0].value;
 		if(v && v != this.query.ID){

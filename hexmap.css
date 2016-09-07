@@ -194,6 +194,9 @@ table {
 	width: 100%;
 	border-collapse: collapse;
 }
+table tr {
+	background-color: #ffffff;
+}
 table tr:nth-child(2n) {
 	background-color: #efefef;
 }
@@ -206,3 +209,39 @@ table td, table th {
 	white-space: nowrap;
 	padding: 0.5em;
 }
+html { height: 100%; }
+body { font-family: sans-serif; margin: 0px; padding: 0px; background-color: white; text-align: center; height: 100%; width: 100%; justify-content: center; }
+h1 { display: block; margin: 0px; font-size: 1.2em; line-height: 1em; }
+p {
+	text-align: left;
+	margin: 1em auto;
+}
+code {
+	color: #02a24b;
+}
+select {
+	font-size: 1em;
+}
+input.error {
+	background-color: red;
+}
+.header {
+	display: block;
+	padding: 1em;
+	background-color: #dfdfdf;
+	text-align: left;
+}
+form { margin: 0px; }
+#customise { margin-bottom: 1em; }
+#config { float: right; font-size: 1em; text-decoration: none; margin-top: -0.5em; }
+#config:hover, .inp input[type=submit]:hover { background-color: white; cursor: pointer; }
+.hide { display: none; }
+.inp { display: block; margin-bottom: 0.25em; line-height: 2em; }
+.inp label { margin-right: 0.5em; width: 10em; display: inline-block; }
+.inp label:after { content: ":"; }
+.inp input[type=text] { padding: 0 0.5em; }
+.inp select { height: 2em; padding: 0 0.25em; }
+.inp select option { padding: 0 0.5em; }
+.inp input[type=text], .inp select { width: 25em; max-width: 100%; }
+.inp input, .inp select, button { border: 1px solid #999999; border-radius: 4px; font-size: 1em; line-height: 2em; }
+#msg { float: left; width: 40%; text-align: left; padding: 0.5em;}
