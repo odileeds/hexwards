@@ -86,6 +86,7 @@ function HexMap(){
 		}
 		return r;
 	}
+	
 	// Escape HTML characters
 	function htmlDecode(input){
 		if(typeof input==="undefined") return;
@@ -95,35 +96,76 @@ function HexMap(){
 	}
 
 	this.setVals = function(){
+		console.log('setVals')
 		this.query = parseQueryString();
-		this.cols = { 'ward': htmlDecode(this.query.ward), 'categories': htmlDecode(this.query.categories), 'col': htmlDecode(this.query.col), 'colour': htmlDecode(this.query.colour), 'palette': htmlDecode(this.query.palette), 'count': (this.query.count=="true" ? true : false), 'categorylist': false };
+		this.url = htmlDecode(this.query.url);
+		this.cols = { 'ward': htmlDecode(this.query.ward), 'categories': htmlDecode(this.query.categories), 'col': htmlDecode(this.query.col), 'count': (this.query.count=="true" ? true : false), 'categorylist': false };
+
 		// Use user-provided colour
-		this.colour = htmlDecode(this.cols.colour) || 'rgb(246,136,31)';
+		this.colour = htmlDecode(this.query.colour) || 'rgb(246,136,31)';
+		this.palette = htmlDecode(this.query.palette);
+
+		this.processURL();
 
 		for(var c in this.scales){
-			if(c == this.cols.palette){
+			if(c == this.palette){
 				this.colour = this.scales[c];
 				continue;
 			}
 		}
 		return this;
 	}
+	this.processURL = function(){
 
+		// A data set will exist at a URL e.g. http://datamillnorth.org/dataset/home-fire-safety-checks
+		// We can get the metadata from e.g. http://datamillnorth.org/api/action/package_show?id=home-fire-safety-checks
+
+		var protocol = this.url.indexOf("://");
+		this.datastore = this.url.substr(0,protocol + 3 + this.url.substr(protocol+3).indexOf('/'))
+		// Assume everything is under "dataset/"
+		this.packageID = this.url.substring(this.url.indexOf("dataset/")+8);
+		
+		console.log('get ',this.datastore+'/api/action/package_show?id='+this.packageID)
+		
+		
+		if(!this.responses[this.packageID]){
+			S('#msg').html('Getting data set header');
+			S(document).ajax(this.datastore+'/api/action/package_show?id='+this.packageID,{
+				'complete': this.loadedPackage,
+				'error': this.failLoad,
+				'this': this
+			});
+		}else this.loadedPackage(this.responses[this.query.ID].header);
+
+		
+		return this;
+	}
+	
+	this.loadedPackage = function(d){
+		console.log(d)
+	}
+	
+	
 	this.setTitle = function(){
 		S('.value_title').html((this.query.url ? '<a href="'+htmlDecode(this.query.url)+'">':'')+(htmlDecode(this.query.title) || this.query.ID)+(this.query.url ? '</a>':''));
 		S('title').html(htmlDecode(this.query.title) || this.query.ID);
 		return this;	
 	}
 	this.setInputs = function(){
-		//console.log('setInputs')
+
+		// Set the URL field
+		S('#url').attr('value',this.url);
+
+		// Set the data file ID
 		S('#ID').attr('value',this.query.ID);
 		if(S('#ward').e[0].nodeName=="INPUT") S('#ward').attr('value',this.cols.ward);
 		if(S('#categories').e[0].nodeName=="INPUT") S('#categories').attr('value',this.cols.categories);
-		S('#colour').attr('value',this.cols.colour);
+		S('#colour').attr('value',htmlDecode(this.query.colour));
+
 		// Update palette list
 		var c = S('#palette option');
 		for(var i = 0; i < c.length; i++){
-			if(S(c.e[i]).attr('value') == this.cols.palette+'') S(c.e[i]).attr('selected','selected');
+			if(S(c.e[i]).attr('value') == this.palette+'') S(c.e[i]).attr('selected','selected');
 		}
 		// Update dropdown list
 		var c = S('#count option');
@@ -137,6 +179,7 @@ function HexMap(){
 		return this;
 	}
 	this.init = function(){
+		console.log('init')
 		this.setVals();
 		this.setTitle();
 		this.setInputs();
@@ -153,7 +196,7 @@ function HexMap(){
 	}
 
 	this.navigate = function(e){
-		//console.log('navigate',location.href,e)
+		console.log('navigate',location.href,e)
 		var id = this.query.ID;
 		this.init();
 		if(id != this.query.ID) this.getHeader();
@@ -205,13 +248,13 @@ function HexMap(){
 		if(v) this.cols.categories = htmlDecode(v);
 
 		v = S('#colour').e[0].value;
-		if(v) this.cols.colour = htmlDecode(v);
+		if(v) this.colour = htmlDecode(v);
 
 		v = S('#count').e[0].value;
 		if(v) this.cols.count = (v=="true" ? true: false);
 
 		v = S('#palette').e[0].value;
-		if(v) this.cols.palette = htmlDecode(v);
+		if(v) this.palette = htmlDecode(v);
 
 		var v = S('#ID').e[0].value;
 		if(v && v != this.query.ID){
@@ -223,6 +266,7 @@ function HexMap(){
 		return this;
 	}
 	this.loadedHeader = function(data){
+		console.log('loadedHeader')
 		if(!this.responses[this.query.ID]) this.responses[this.query.ID] = {'header':{}};
 		this.responses[this.query.ID].header = data;
 
@@ -411,8 +455,9 @@ function HexMap(){
 	}
 	
 	this.update = function() {
+		console.log('update')
 		var typ = S('#category').e[0].value;
-		this.setVals();
+		//this.setVals();
 		var ok,v,i,id,w;
 		var byward = { 'Leeds': 0 };
 		this.wardrows = new Array(this.db.length);
@@ -474,7 +519,7 @@ function HexMap(){
 		if(this.data) this.update();
 		return this;
 	}
-	
+
 	// Get the data
 	if(this.query.ID) this.getHeader();
 	
