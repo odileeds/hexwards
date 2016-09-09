@@ -161,28 +161,6 @@ ul.key li {
 	margin: auto;
 }
 li { position: absolute; }
-.r-1 { bottom: 0em; }
-.r-2 { bottom: 2.5em; }
-.r-3 { bottom: 5em; }
-.r-4 { bottom: 7.5em; }
-.r-5 { bottom: 10em; }
-.r-6 { bottom: 12.5em; }
-.r-7 { bottom: 15em; }
-.r-8 { bottom: 17.5em; }
-.r-9 { bottom: 20em; }
-.r-10 { bottom: 22.5em; }
-.r-11 { bottom: 25em; }
-.r-12 { bottom: 27.5em; }
-.r-13 { bottom: 30em; }
-.c-1 { left: 0em; }
-.c-2 { left: 2.25em; margin-bottom: 1.25em!important; }
-.c-3 { left: 4.5em; }
-.c-4 { left: 6.75em; margin-bottom: 1.25em!important; }
-.c-5 { left: 9em; }
-.c-6 { left: 11.25em; margin-bottom: 1.25em!important; }
-.c-7 { left: 13.5em; }
-.c-8 { left: 15.75em; margin-bottom: 1.25em!important; }
-
 
 #data {
 	width: 100%;

@@ -8,47 +8,102 @@ var eventcache={};function S(h){function f(m,e){var s=new Array();var q,r,p,n,l,
 */
 var map;
 
-function HexMap(){
+function WardMap(w,cities){
+	if(typeof w==="string") w = JSON.parse(w);
+	if(typeof cities!=="object") var cities = ['Leeds'];
+
+	this.lookup = {};
+	this.wards = w;
+	this.cities = cities;
+
+	for(city in this.wards){
+		for(var i = 0; i < this.wards[city].wards.length; i++){
+			obj = this.wards[city].wards[i];
+			obj.code = this.wards[city].wards[i].id;
+			obj.city = city;
+			//this.lookup[this.wards[city].wards[i].id] = obj;
+			this.lookup[this.wards[city].wards[i].n[1]] = obj;
+		}
+	}
+	this.lookup['Total'] = {"code":"Total"};
+
+	// Create ourselves an empty stylesheet that we can update later
+	S('body').append('<style id="wardstylesheet"></style>');
+
+	this.setRange();
+	this.buildWards();
+	
+	return this;
+}
+
+WardMap.prototype.setRange = function(){
+	var xmx = 0;
+	var xmn = -1;
+	var ymx = 0;
+	var ymn = -1;
+	for(city in this.wards){
+		for(var c = 0; c < this.cities.length; c++){
+			if(this.cities[c] == city){
+				for(var i = 0; i < this.wards[city].wards.length; i++){
+					y = this.wards[city].wards[i].y + this.wards[city].y;
+					x = this.wards[city].wards[i].x + this.wards[city].x;
+					if(x > xmx) xmx = x;
+					if(x < xmn || xmn < 0) xmn = x;
+					if(y > ymx) ymx = y;
+					if(y < ymn || ymn < 0) ymn = y;
+				}
+			}
+		}
+	}
+	if(xmn%2==1) xmn--;
+	if(ymn%2==1) ymn--;
+	//ymx -= 0.5;
+	if(ymn < 1) ymn++;
+
+	this.range = {'xmn':xmn,'xmx':xmx,'ymn':ymn,'ymx':ymx};
+	return this;
+}
+WardMap.prototype.buildWards = function(){
+	var html = "";
+	var css = "";
+	for(city in this.wards){
+		for(var c = 0; c < this.cities.length; c++){
+			if(this.cities[c] == city){
+				for(var i = 0; i < this.wards[city].wards.length; i++){
+					y = this.wards[city].wards[i].y + this.wards[city].y - this.range.ymn;
+					x = this.wards[city].wards[i].x + this.wards[city].x - this.range.xmn;
+					html += '<li class="'+this.wards[city].wards[i].id+' '+this.wards[city].wards[i].n[0]+' hextile"><a href="#data" class="hex"><div class="hexcontent"><span class="name" title="'+this.wards[city].wards[i].n[1]+'">'+this.wards[city].wards[i].n[1]+'</span><span class="n"></span></div></a></li>';
+					css += '.'+this.wards[city].wards[i].id+' { left:'+(2.25*(x))+'em; bottom: '+(2.5*(y-0.5))+'em;'+(x%2==0 ? ' margin-bottom: 1.25em!important;':'')+' }';
+				}
+			}
+		}
+	}
+	x = 0;
+	y = 0;
+	html += '<li class="Total hextile"><a href="#data" class="hex"><div class="hexcontent"><span class="name" title="Total">Total</span><span class="n"></span></div></a></li>';
+	css += '.Total { left:'+(2.25*(x))+'em; bottom: '+(2.5*(y-0.5))+'em;'+(x%2==0 ? ' margin-bottom: 1.25em!important;':'')+' }';
+	
+	css += '.hexmap { height: '+((this.range.ymx-this.range.ymn + 1)*2.5)+'em; width:'+((this.range.xmx-this.range.xmn + 1.25)*2.25)+'em; }';
+	S('#wardstylesheet').html(css);
+	S('.hexmap').html(html)
+
+	return this;
+}
+
+
+function HexMap(inp){
+
+	console.log('HexMap')
 
 	this.data;
 	this.responses = {};
 	this.db = new Array();
-	var wards = {
-		"Adel and Wharfedale": {"code":"E05001411","alt":"AW"},
-		"Alwoodley": {"code":"E05001412","alt":"AL"},
-		"Ardsley and Robin Hood": {"code":"E05001413","alt":"AR"},
-		"Armley": {"code":"E05001414","alt":"AM"},
-		"Beeston and Holbeck": {"code":"E05001415","alt":"BH"},
-		"Bramley and Stanningley": {"code":"E05001416","alt":"BS"},
-		"Burmantofts and Richmond Hill": {"code":"E05001417","alt":"BR"},
-		"Calverley and Farsley": {"code":"E05001418","alt":"CF"},
-		"Chapel Allerton": {"code":"E05001419","alt":"CA"},
-		"City and Hunslet": {"code":"E05001420","alt":"CH"},
-		"Cross Gates and Whinmoor": {"code":"E05001421","alt":"CW"},
-		"Farnley and Wortley": {"code":"E05001422","alt":"FW"},
-		"Garforth and Swillington": {"code":"E05001423","alt":"GS"},
-		"Gipton and Harehills": {"code":"E05001424","alt":"GH"},
-		"Guiseley and Rawdon": {"code":"E05001425","alt":"GR"},
-		"Harewood": {"code":"E05001426","alt":"HA"},
-		"Headingley": {"code":"E05001427","alt":"HE"},
-		"Horsforth": {"code":"E05001428","alt":"HO"},
-		"Hyde Park and Woodhouse": {"code":"E05001429","alt":"HW"},
-		"Killingbeck and Seacroft": {"code":"E05001430","alt":"KS"},
-		"Kippax and Methley": {"code":"E05001431","alt":"KM"},
-		"Kirkstall": {"code":"E05001432","alt":"KI"},
-		"Middleton Park": {"code":"E05001433","alt":"MI"},
-		"Moortown": {"code":"E05001434","alt":"MO"},
-		"Morley North": {"code":"E05001435","alt":"MN"},
-		"Morley South": {"code":"E05001436","alt":"MS"},
-		"Otley and Yeadon": {"code":"E05001437","alt":"OY"},
-		"Pudsey": {"code":"E05001438","alt":"PU"},
-		"Rothwell": {"code":"E05001439","alt":"RL"},
-		"Roundhay": {"code":"E05001440","alt":"RO"},
-		"Temple Newsam": {"code":"E05001441","alt":"TN"},
-		"Weetwood": {"code":"E05001442","alt":"WE"},
-		"Wetherby": {"code":"E05001443","alt":"WY"},
-		"Leeds": {"code":"Leeds"},
-	}
+	if(!inp) return this;
+
+	this.wards = new WardMap(inp,['Leeds']);
+
+	var wards = this.wards.lookup;
+
 	this.scales = {
 		'ODI': 'rgb(114,46,165) 0%, rgb(230,0,124) 50%, rgb(249,188,38) 100%',
 		'Heat': 'rgb(0,0,0) 0%, rgb(128,0,0) 25%, rgb(255,128,0) 50%, rgb(255,255,128) 75%, rgb(255,255,255) 100%',
@@ -91,13 +146,14 @@ function HexMap(){
 	function htmlDecode(input){
 		if(typeof input==="undefined") return;
 		var d = document.createElement('div');
-		d.innerHTML = decodeURIComponent((input+'').replace(/\+/g, '%20').replace(/%,/g,"PERCENTCOMMA")).replace(/PERCENTCOMMA/g,"%,");
+		d.innerHTML = decodeURIComponent( (input+'').replace(/\+/g, '%20').replace(/%,/g,"PERCENTCOMMA").replace(/\%$/g, 'PERCENT') ).replace(/PERCENTCOMMA/g,"%,").replace(/PERCENT/g,"%");
 		return d.innerHTML;
 	}
 
 	this.setVals = function(){
 		console.log('setVals')
 		this.query = parseQueryString();
+		this.title = htmlDecode(this.query.title);
 		this.url = htmlDecode(this.query.url);
 		this.cols = { 'ward': htmlDecode(this.query.ward), 'categories': htmlDecode(this.query.categories), 'col': htmlDecode(this.query.col), 'count': (this.query.count=="true" ? true : false), 'categorylist': false };
 
@@ -105,7 +161,7 @@ function HexMap(){
 		this.colour = htmlDecode(this.query.colour) || 'rgb(246,136,31)';
 		this.palette = htmlDecode(this.query.palette);
 
-		this.processURL();
+		//this.processURL();
 
 		for(var c in this.scales){
 			if(c == this.palette){
@@ -126,7 +182,6 @@ function HexMap(){
 		this.packageID = this.url.substring(this.url.indexOf("dataset/")+8);
 		
 		console.log('get ',this.datastore+'/api/action/package_show?id='+this.packageID)
-		
 		
 		if(!this.responses[this.packageID]){
 			S('#msg').html('Getting data set header');
@@ -155,6 +210,7 @@ function HexMap(){
 
 		// Set the URL field
 		S('#url').attr('value',this.url);
+		S('#title').attr('value',htmlDecode(this.query.title));
 
 		// Set the data file ID
 		S('#ID').attr('value',this.query.ID);
@@ -236,6 +292,8 @@ function HexMap(){
 		for(var i = 0; i < els.length; i++){
 			if(els.e[i].value) str += (str ? '&':'')+els.e[i].getAttribute('id')+'='+els.e[i].value.replace(/#/g,'%23').replace(/\%/g,'%25');
 		}
+		var els = S('#hexmapform input[type=hidden]');
+		for(var i = 0; i < els.length; i++) str += (str ? '&':'')+S(els.e[i]).attr('id')+'='+els.e[i].value.replace(/#/g,'%23').replace(/\%/g,'%25');
 		return str;
 	}
 	// Read the parameters from the form
@@ -443,7 +501,7 @@ function HexMap(){
 
 	// Listen for changes to the dropdown select box
 	S('#category').on('change',{me:this},function(e){ e.data.me.change(); });
-	S('#hexmapform').e[0].onsubmit = function(e){ _obj.change(); return false; }
+	S('#hexmapform').e[0].onsubmit = function(e){ e.preventDefault(); _obj.change(); return false; }
 
 	function matchWard(w){
 		if(!w || typeof w!=="string") return "";
@@ -455,11 +513,10 @@ function HexMap(){
 	}
 	
 	this.update = function() {
-		console.log('update')
 		var typ = S('#category').e[0].value;
-		//this.setVals();
+		this.setVals();
 		var ok,v,i,id,w;
-		var byward = { 'Leeds': 0 };
+		var byward = { 'Total': 0 };
 		this.wardrows = new Array(this.db.length);
 
 		for(i = 0; i < this.db.length; i++){
@@ -475,7 +532,7 @@ function HexMap(){
 				if(w){
 					// Only include the data if a ward is provided
 					byward[w] += v;
-					byward['Leeds'] += v;
+					byward['Total'] += v;
 				}
 			}
 		}
@@ -483,8 +540,8 @@ function HexMap(){
 		var max = -big;
 		var min = big;
 		for(id in byward){
-			if(byward[id] > max && id != "Leeds") max = byward[id];
-			if(byward[id] < min && id != "Leeds") min = byward[id];
+			if(byward[id] > max && id != "Total") max = byward[id];
+			if(byward[id] < min && id != "Total") min = byward[id];
 		}
 		if(min == big || max == -big) return this;
 		var css = "";
@@ -513,6 +570,7 @@ function HexMap(){
 
 		}
 		css += '.mapholder .hexmap { font-size: '+(Math.round(document.body.offsetWidth/40))+'px; }';
+
 		S('#customstylesheet').html(css);
 	}
 	this.resize = function(){
@@ -626,6 +684,18 @@ function HexMap(){
 
 	return this;
 }
+
 S(document).ready(function(){
-	map = new HexMap();	
+
+	// Load the ward information
+	S(document).ajax('wards.json',{
+		'complete': function(w){
+			map = new HexMap(w);
+		},
+		'error': function(e){},
+		'this': this
+	});
+
+
+		
 });
