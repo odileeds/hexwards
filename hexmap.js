@@ -586,7 +586,7 @@ function HexMap(inp){
 
 		}
 		css += '.mapholder .hexmap { font-size: '+(Math.round((typeof this.query.scale==="number" ? this.query.scale : 1)*document.body.offsetWidth/40))+'px; }';
-
+		if(this.query.color) css += 'body { color: '+this.query.color+' }';
 		S('#customstylesheet').html(css);
 	}
 	this.resize = function(){
