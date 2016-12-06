@@ -173,10 +173,10 @@ table {
 	border-collapse: collapse;
 }
 table tr {
-	background-color: transparent;
+	background-color: #ffffff;
 }
 table tr:nth-child(2n) {
-	background-color: rgba(255,255,255,0.9);
+	background-color: rgba(255,255,255,0.8);
 }
 table th {
 	background-color: #333333;
