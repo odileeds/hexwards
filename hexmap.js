@@ -585,7 +585,7 @@ function HexMap(inp){
 			css += '.hexmap .hextile.'+id+' { background-color: '+colour+'; '+(cs.length > 1 ? 'color: '+c2.text:'')+'} .hexmap .hextile.'+id+':before, .hexmap .hextile.'+id+':after { border-color: '+colour+'; }';
 
 		}
-		css += '.mapholder .hexmap { font-size: '+(Math.round(document.body.offsetWidth/40))+'px; }';
+		css += '.mapholder .hexmap { font-size: '+(Math.round((typeof this.query.scale==="number" ? this.query.scale : 1)*document.body.offsetWidth/40))+'px; }';
 
 		S('#customstylesheet').html(css);
 	}
