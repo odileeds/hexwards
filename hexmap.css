@@ -171,6 +171,7 @@ li { position: absolute; }
 table {
 	width: 100%;
 	border-collapse: collapse;
+	color: black;
 }
 table tr {
 	background-color: #ffffff;
