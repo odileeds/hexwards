@@ -495,9 +495,13 @@ function HexMap(inp){
 	S('body').append('<style id="customstylesheetmain"></style><style id="customstylesheet"></style>');
 
 	// Set the spinner colour
-	var co = new Colour(this.query.textcolor || window.getComputedStyle(S('body')[0])['color']);
-	var c = co.rgb[0]+','+co.rgb[1]+','+co.rgb[2];
-	S('#customstylesheetmain').html('.spinner { border-color: rgba('+c+', 1) rgba('+c+', 0) rgba('+c+', 0.333) rgba('+c+', 0.667); }');
+	var c = window.getComputedStyle(S('body')[0])['color'];
+	if(this.query.textcolor) c = window.getComputedStyle(S(document.createElement('div')).css({'color':this.query.textcolor})[0])['color'];
+	if(c){
+		var co = new Colour(c);
+		c = co.rgb[0]+','+co.rgb[1]+','+co.rgb[2];
+		S('#customstylesheetmain').html('.spinner { border-color: rgba('+c+', 1) rgba('+c+', 0) rgba('+c+', 0.333) rgba('+c+', 0.667); }');
+	}
 
 
 	// Listen for changes to the dropdown select box
