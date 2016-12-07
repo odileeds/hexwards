@@ -34,7 +34,6 @@ function WardMap(w,cities){
 	return this;
 }
 WardMap.prototype.update = function(cities){
-	console.log('WardMap.update()')
 	if(typeof cities==="object") this.cities = cities;
 	this.setRange().buildWards();
 	return this;
@@ -96,8 +95,6 @@ WardMap.prototype.buildWards = function(){
 
 function HexMap(inp){
 
-	console.log('HexMap')
-
 	this.data;
 	this.responses = {};
 	this.db = new Array();
@@ -154,7 +151,6 @@ function HexMap(inp){
 	}
 
 	this.setVals = function(){
-		console.log('setVals')
 		this.query = parseQueryString();
 		this.title = htmlDecode(this.query.title);
 		this.url = htmlDecode(this.query.url);
@@ -162,6 +158,7 @@ function HexMap(inp){
 
 		// Use user-provided colour
 		this.colour = htmlDecode(this.query.colour) || 'rgb(246,136,31)';
+
 		this.palette = htmlDecode(this.query.palette);
 
 		//this.processURL();
@@ -184,10 +181,8 @@ function HexMap(inp){
 		// Assume everything is under "dataset/"
 		this.packageID = this.url.substring(this.url.indexOf("dataset/")+8);
 		
-		console.log('get ',this.datastore+'/api/action/package_show?id='+this.packageID)
-		
 		if(!this.responses[this.packageID]){
-			S('#msg').html('Getting data set header');
+			S('#msg').html('Getting data set header <div class="spinner"></div>');
 			S(document).ajax(this.datastore+'/api/action/package_show?id='+this.packageID,{
 				'complete': this.loadedPackage,
 				'error': this.failLoad,
@@ -200,7 +195,7 @@ function HexMap(inp){
 	}
 	
 	this.loadedPackage = function(d){
-		console.log(d)
+		//console.log(d)
 	}
 	
 	
@@ -238,7 +233,6 @@ function HexMap(inp){
 		return this;
 	}
 	this.init = function(){
-		console.log('init')
 		this.setVals();
 		this.setTitle();
 		this.setInputs();
@@ -255,7 +249,6 @@ function HexMap(inp){
 	}
 
 	this.navigate = function(e){
-		console.log('navigate',location.href,e)
 		var id = this.query.ID;
 		this.init();
 		if(id != this.query.ID) this.getHeader();
@@ -327,7 +320,6 @@ function HexMap(inp){
 		return this;
 	}
 	this.loadedHeader = function(data){
-		console.log('loadedHeader')
 		if(!this.responses[this.query.ID]) this.responses[this.query.ID] = {'header':{}};
 		this.responses[this.query.ID].header = data;
 
@@ -338,7 +330,7 @@ function HexMap(inp){
 		this.init();
 
 		var n = Math.min(data.result.total,100000)
-		S('#msg').html('Loading '+n+' records'+(n < data.result.total ? ' of '+data.result.total:'')+'&hellip;');
+		S('#msg').html('Loading '+n+' records'+(n < data.result.total ? ' of '+data.result.total:'')+'&hellip;<div class="spinner"></div>');
 
 		this.getRecords(n);
 		
@@ -355,7 +347,7 @@ function HexMap(inp){
 
 		this.setTitle();
 		if(!this.responses[this.query.ID]){
-			S('#msg').html('Getting data set header');
+			S('#msg').html('Getting data set header<div class="spinner"></div>');
 			S(document).ajax('http://api.datapress.io/api/3/action/datastore_search?resource_id='+this.query.ID+'&limit=1',{
 				'complete': this.loadedHeader,
 				'error': this.failLoad,
@@ -500,7 +492,13 @@ function HexMap(inp){
 	}
 	
 	// Create ourselves an empty stylesheet that we can update later
-	S('body').append('<style id="customstylesheet"></style>');
+	S('body').append('<style id="customstylesheetmain"></style><style id="customstylesheet"></style>');
+
+	// Set the spinner colour
+	var co = new Colour(this.query.textcolor || window.getComputedStyle(S('body')[0])['color']);
+	var c = co.rgb[0]+','+co.rgb[1]+','+co.rgb[2];
+	S('#customstylesheetmain').html('.spinner { border-color: rgba('+c+', 1) rgba('+c+', 0) rgba('+c+', 0.333) rgba('+c+', 0.667); }');
+
 
 	// Listen for changes to the dropdown select box
 	S('#category').on('change',{me:this},function(e){ e.data.me.change(); });
@@ -560,6 +558,7 @@ function HexMap(inp){
 			if(byward[id] < min && id != "Total") min = byward[id];
 		}
 		if(min == big || max == -big) return this;
+		if(min > 0){ min = 0; }
 		var css = "";
 		var cs = this.extractColours(this.colour,min,max);
 
@@ -586,7 +585,7 @@ function HexMap(inp){
 
 		}
 		css += '.mapholder .hexmap { font-size: '+(Math.round((typeof this.query.scale==="number" ? this.query.scale : 1)*document.body.offsetWidth/40))+'px; }';
-		if(this.query.color) css += 'body { color: '+this.query.color+' }';
+		if(this.query.textcolor) css += 'body { color: '+this.query.textcolor+' }';
 		S('#customstylesheet').html(css);
 	}
 	this.resize = function(){

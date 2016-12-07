@@ -224,3 +224,13 @@ form { margin: 0px; }
 .inp input[type=text], .inp select { width: 25em; max-width: 100%; }
 .inp input, .inp select, button { border: 1px solid #999999; border-radius: 4px; font-size: 1em; line-height: 2em; }
 #msg { float: left; width: 40%; text-align: left; padding: 0.5em;}
+.spinner {
+	width: 2em;
+	height: 2em;
+	border: 0.25em solid white;
+	border-radius: 100%;
+	border-color: rgba(0, 0, 0, 1) rgba(0, 0, 0, 0) rgba(0, 0, 0, 0.333) rgba(0, 0, 0, 0.667);
+	animation: 0.7s linear 0s normal none infinite spinner-anim;
+}
+@-webkit-keyframes spinner-anim{0%{-webkit-transform:rotate(0);}100%{-webkit-transform:rotate(360deg);}}
+@keyframes spinner-anim{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
