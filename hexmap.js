@@ -498,7 +498,6 @@ function HexMap(inp){
 	var c = window.getComputedStyle(S('body')[0])['color'];
 	if(this.query.textcolor) c = window.getComputedStyle(S(document.createElement('div')).css({'color':this.query.textcolor})[0])['color'];
 	if(c){
-		console.log(c)
 		var co = new Colour(c);
 		c = co.rgb[0]+','+co.rgb[1]+','+co.rgb[2];
 		S('#customstylesheetmain').html('.spinner { border-color: rgba('+c+', 1) rgba('+c+', 0) rgba('+c+', 0.333) rgba('+c+', 0.667); }');
