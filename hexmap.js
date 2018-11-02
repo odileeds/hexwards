@@ -348,7 +348,7 @@ function HexMap(inp){
 		this.setTitle();
 		if(!this.responses[this.query.ID]){
 			S('#msg').html('Getting data set header<div class="spinner"></div>');
-			S(document).ajax('http://api.datapress.io/api/3/action/datastore_search?resource_id='+this.query.ID+'&limit=1',{
+			S(document).ajax('https://datamillnorth.org/api/action/datastore_search?resource_id='+this.query.ID+'&limit=1',{
 				'complete': this.loadedHeader,
 				'error': this.failLoad,
 				'this': this
@@ -483,7 +483,7 @@ function HexMap(inp){
 	this.getRecords = function(n){
 		//console.log('getRecords',this.query.ID,this.responses[this.query.ID])
 		if(!this.responses[this.query.ID].body){
-			S(document).ajax('http://api.datapress.io/api/3/action/datastore_search?resource_id='+this.query.ID+'&limit='+n,{
+			S(document).ajax('https://datamillnorth.org/api/action/datastore_search?resource_id='+this.query.ID+'&limit='+n,{
 				'complete': this.loadedRecords,
 				'error': this.failLoad,
 				'this': this
